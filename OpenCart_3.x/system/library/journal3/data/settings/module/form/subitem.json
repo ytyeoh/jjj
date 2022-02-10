@@ -1,7 +1,8 @@
 {
   "name": {
     "type": "Input",
-    "value": "Field Value"
+    "value": "Field Value",
+    "php": true
   },
   "label": {
     "type": "InputLang",

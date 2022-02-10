@@ -102,7 +102,7 @@ class ControllerJournal3Newsletter extends ModuleController {
 
 			$email_data = array(
 				'title'      => $this->config->get('config_name'),
-				'logo'       => $this->model_journal3_image->resize($this->config->get('config_logo')),
+				'logo'       => $this->settings['emailLogo'] && $this->config->get('config_logo') ? $this->model_journal3_image->resize($this->config->get('config_logo')) : false,
 				'store_name' => $this->config->get('config_name'),
 				'store_url'  => $this->config->get(Request::isHttps() ? 'config_ssl' : 'config_url'),
 			);
@@ -119,9 +119,10 @@ class ControllerJournal3Newsletter extends ModuleController {
 						$email_data['message'] = $this->settings['unsubscribedEmailMessage'];
 
 						$this->load->controller('journal3/mail/send', array(
-							'to'      => $email,
-							'subject' => $this->config->get('config_name'),
-							'message' => $this->load->view('journal3/module/newsletter_unsubscribed_email', $email_data),
+							'to'         => $email,
+							'subject'    => $this->config->get('config_name'),
+							'message'    => $this->load->view('journal3/module/newsletter_unsubscribed_email', $email_data),
+							'additional' => false,
 						));
 					}
 
@@ -147,9 +148,10 @@ class ControllerJournal3Newsletter extends ModuleController {
 					$email_data['message'] = $this->settings['subscribedEmailMessage'];
 
 					$this->load->controller('journal3/mail/send', array(
-						'to'      => $email,
-						'subject' => $this->config->get('config_name'),
-						'message' => $this->load->view('journal3/module/newsletter_subscribed_email', $email_data),
+						'to'         => $email,
+						'subject'    => $this->config->get('config_name'),
+						'message'    => $this->load->view('journal3/module/newsletter_subscribed_email', $email_data),
+						'additional' => false,
 					));
 				}
 

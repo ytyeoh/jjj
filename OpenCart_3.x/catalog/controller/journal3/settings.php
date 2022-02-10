@@ -64,6 +64,8 @@ class ControllerJournal3Settings extends Controller {
 
 			// settings
 			$files = array(
+				'dashboard/dashboard',
+
 				'system/system',
 
 				'settings/active_skin',
@@ -72,7 +74,20 @@ class ControllerJournal3Settings extends Controller {
 				'settings/general',
 				'settings/performance',
 				'settings/seo',
+			);
 
+			$parser = new Parser($files, $settings);
+
+			$cache['php'] += $parser->getPhp();
+			$cache['js'] += $parser->getJs();
+			$fonts = $parser->getFonts();
+			$cache['fonts'] = Arr::merge($cache['fonts'], $fonts);
+			$cache['css'] .= $parser->getCss();
+
+			$this->journal3->settings->set('performanceCompressImagesStatus', $parser->getSetting('performanceCompressImagesStatus'));
+
+			// skin
+			$files = array(
 				'skin/blog/post',
 				'skin/blog/posts',
 
@@ -178,7 +193,7 @@ class ControllerJournal3Settings extends Controller {
 
 		// disable defer on routes
 		$ignored_routes = array(
-			'product/',
+			'checkout/'
 		);
 
 		if (Request::matches($ignored_routes)) {
@@ -316,6 +331,13 @@ class ControllerJournal3Settings extends Controller {
 		// search page
 		if ($this->journal3->settings->get('headerMiniSearchDisplay') === 'page') {
 			$this->journal3->document->addClass('search-page');
+		}
+
+		// home page h1
+		if (($this->request->get['route'] ?? 'common/home') === 'common/home') {
+			$this->journal3->settings->set('journal3_home_h1', $this->config->get('config_name'));
+		} else {
+			$this->journal3->settings->set('journal3_home_h1', false);
 		}
 
 	}

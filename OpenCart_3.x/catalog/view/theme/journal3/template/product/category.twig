@@ -18,7 +18,7 @@
       {% if thumb or description %}
         <div class="category-description">
           {% if thumb and j3.settings.get('categoryPageCategoryImageStatus') %}
-          <img src="{{ thumb }}" {% if thumb2x %}srcset="{{ thumb }} 1x, {{ thumb2x }} 2x"{% endif %} alt="{{ heading_title }}" title="{{ heading_title }}" class="category-image"/>
+          <img src="{{ thumb }}" {% if thumb2x %}srcset="{{ thumb }} 1x, {{ thumb2x }} 2x"{% endif %} alt="{{ heading_title }}" title="{{ heading_title }}" class="category-image" width="{{ j3.settings.get('image_dimensions_category.width') }}" height="{{ j3.settings.get('image_dimensions_category.height') }}"/>
           {% endif %}
           {% if description and j3.settings.get('categoryPageCategoryDescriptionStatus') %}
             <div class="category-text">{{ description }}</div>
@@ -44,7 +44,7 @@
                       <div class="refine-item {% if j3.settings.get('subcategoriesDisplay') == 'carousel' %}swiper-slide{% endif %}">
                         <a href="{{ category.href }}">
                           {% if j3.settings.get('subcategoriesDisplay') != 'links' %}
-                            <img src="{{ category.image }}" {% if category.image2x %}data-srcset="{{ category.image }} 1x, {{ category.image2x }} 2x"{% endif %} alt="{{ category.alt }}"/>
+                            <img src="{{ category.image }}" {% if category.image2x %}data-srcset="{{ category.image }} 1x, {{ category.image2x }} 2x"{% endif %} alt="{{ category.alt }}" width="{{ j3.settings.get('image_dimensions_subcategory.width') }}" height="{{ j3.settings.get('image_dimensions_subcategory.height') }}"/>
                           {% endif %}
                           <span class="refine-name">{{ category.name }}</span>
                         </a>

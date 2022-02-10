@@ -185,32 +185,6 @@ class ModelJournal3Checkout extends Model {
 		unset($custom_fields['custom_field']);
 		$data['custom_fields'] = $custom_fields;
 
-		// checkbox fix
-		foreach (Arr::get($custom_fields, 'custom_fields.account', array()) as $custom_field) {
-			if ($custom_field['type'] === 'checkbox') {
-				if (!is_array(Arr::get($data, 'custom_field.' . $custom_field['custom_field_id']))) {
-					$data['custom_field'][$custom_field['custom_field_id']] = array();
-				}
-			}
-		}
-
-		foreach (Arr::get($custom_fields, 'custom_fields.address', array()) as $custom_field) {
-			if ($custom_field['type'] === 'checkbox') {
-				if (!is_array(Arr::get($data, 'payment_custom_field.' . $custom_field['custom_field_id']))) {
-					$data['payment_custom_field'][$custom_field['custom_field_id']] = array();
-				}
-
-				if (!is_array(Arr::get($data, 'shipping_custom_field.' . $custom_field['custom_field_id']))) {
-					$data['shipping_custom_field'][$custom_field['custom_field_id']] = array();
-				}
-			}
-		}
-
-		// custom fields empty array json_encode fix
-		if (!is_array($data['custom_field']) || !count($data['custom_field'])) {
-			$data['custom_field'] = new stdClass();
-		}
-
 		// totals
 		$data = array_replace($data, $this->totals());
 
@@ -262,6 +236,40 @@ class ModelJournal3Checkout extends Model {
 		// recalculate totals
 		$data = array_replace($data, $this->totals());
 
+		// checkbox fix
+		foreach (Arr::get($custom_fields, 'custom_fields.account', array()) as $custom_field) {
+			if ($custom_field['type'] === 'checkbox') {
+				if (!is_array(Arr::get($data, 'custom_field.' . $custom_field['custom_field_id']))) {
+					$data['custom_field'][$custom_field['custom_field_id']] = array();
+				}
+			}
+		}
+
+		foreach (Arr::get($custom_fields, 'custom_fields.address', array()) as $custom_field) {
+			if ($custom_field['type'] === 'checkbox') {
+				if (!is_array(Arr::get($data, 'payment_custom_field.' . $custom_field['custom_field_id']))) {
+					$data['payment_custom_field'][$custom_field['custom_field_id']] = array();
+				}
+
+				if (!is_array(Arr::get($data, 'shipping_custom_field.' . $custom_field['custom_field_id']))) {
+					$data['shipping_custom_field'][$custom_field['custom_field_id']] = array();
+				}
+			}
+		}
+
+		// custom fields empty array json_encode fix
+		if (!is_array($data['custom_field']) || !count($data['custom_field'])) {
+			$data['custom_field'] = new stdClass();
+		}
+
+		if (!is_array($data['payment_custom_field']) || !count($data['payment_custom_field'])) {
+			$data['payment_custom_field'] = new stdClass();
+		}
+
+		if (!is_array($data['shipping_custom_field']) || !count($data['shipping_custom_field'])) {
+			$data['shipping_custom_field'] = new stdClass();
+		}
+
 		// save
 		$this->model_journal3_order->save($order_id, $data);
 
@@ -274,13 +282,19 @@ class ModelJournal3Checkout extends Model {
 		}
 
 		if (!Arr::get($this->session->data, $type . '_address.country_id')) {
-			switch ($this->journal3->settings->get('quickCheckoutAddressDefaultZone')) {
+			switch ($this->journal3->settings->get('quickCheckoutAddressDefaultCountry')) {
 				case 'store_address':
 					$this->session->data[$type . '_address']['country_id'] = $this->config->get('config_country_id');
-					$this->session->data[$type . '_address']['zone_id'] = $this->config->get('config_zone_id');
 					break;
 				default:
 					$this->session->data[$type . '_address']['country_id'] = '';
+			}
+
+			switch ($this->journal3->settings->get('quickCheckoutAddressDefaultZone')) {
+				case 'store_address':
+					$this->session->data[$type . '_address']['zone_id'] = $this->config->get('config_zone_id');
+					break;
+				default:
 					$this->session->data[$type . '_address']['zone_id'] = '';
 			}
 		}

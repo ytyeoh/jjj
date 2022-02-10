@@ -9,7 +9,13 @@ use Journal3\Utils\Html;
 use Journal3\Utils\Request;
 use Journal3\Utils\Str;
 
-define('JOURNAL3_VERSION', '3.1.0');
+if (!defined('JOURNAL3_VERSION')) {
+	define('JOURNAL3_VERSION', '3.x.x');
+}
+
+if (!defined('JOURNAL3_BUILD')) {
+	define('JOURNAL3_BUILD', 'local');
+}
 
 if (!defined('JOURNAL3_OC_VERSION')) {
 	if (!defined('VERSION')) {
@@ -26,6 +32,8 @@ if (!defined('JOURNAL3_OC_VERSION')) {
 		define('JOURNAL3_OC_VERSION', null);
 	}
 }
+
+if (!defined('JOURNAL3_EXPORT')) define('JOURNAL3_EXPORT', $_ENV['JOURNAL3_EXPORT'] ?? false);
 
 final class Journal3 {
 
@@ -180,7 +188,7 @@ final class Journal3 {
 	}
 
 	public function canLiveReload() {
-		return $this->isDev() && ($this->isLocalhost() || Str::startsWith($this->getHost(), '192.'));
+		return $this->isDev() && !Request::isHttps() && ($this->isLocalhost() || Str::startsWith($this->getHost(), '192.'));
 	}
 
 	public function getHost() {

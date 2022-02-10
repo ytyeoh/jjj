@@ -33,17 +33,30 @@ class ControllerJournal3Startup extends Controller {
 
 			$this->registry->set('journal3', new Journal3($this->registry));
 
+			if (defined('J3_ENABLE_PROFILER') && J3_ENABLE_PROFILER && $this->journal3->isAdmin() && isset($this->request->get['j3pr'])) {
+				Clockwork\Support\Vanilla\Clockwork::init([
+					'api'                => parse_url(HTTP_SERVER, PHP_URL_PATH) . 'index.php?route=journal3/profiler/clockwork&j3pr=1&request=',
+					'storage_files_path' => DIR_LOGS . 'clockwork',
+					'register_helpers'   => true,
+				]);
+
+				$this->event->register('controller/*/before', new Action('journal3/profiler/before_controller'));
+				$this->event->register('controller/*/after', new Action('journal3/profiler/after_controller'));
+				$this->event->register('view/*/before', new Action('journal3/profiler/before_view'));
+				$this->event->register('view/*/after', new Action('journal3/profiler/after_view'));
+			}
+
 			// models
 			$this->load->model('journal3/settings');
 			$this->load->model('journal3/module');
 			$this->load->model('journal3/image');
 
 			// php version check
-			if (version_compare(VERSION, '3.1', '<') && version_compare(phpversion(), '7.4', '>=')) {
+			if (version_compare(VERSION, '3', '>=') && version_compare(VERSION, '3.0.3.6', '<=') && version_compare(phpversion(), '7.4', '>=')) {
 				$this->print_error(
 					'Unsupported PHP Version',
 					'Opencart <b>' . VERSION . '</b> does not fully support PHP <b>' . phpversion() . '</b> version!',
-					'Consult with your hosting provider for more information regarding how to downgrade PHP to 7.3 (or lower).'
+					'Consult with your hosting provider for more information regarding how to downgrade PHP to <b>7.3</b>.'
 				);
 			}
 
@@ -82,6 +95,15 @@ class ControllerJournal3Startup extends Controller {
 			// settings
 			$this->load->controller('journal3/settings');
 
+			// Dashboard
+			if (((int)$this->config->get('config_store_id') > 0) && (JOURNAL3_ENV !== 'development') && (!$this->journal3->settings->get('dashboard_user') || !$this->journal3->settings->get('dashboard_key'))) {
+				$this->print_error(
+					'Journal License Error',
+					'Your current store does not have a Journal license setup, access <b>Journal admin interface</b> and input your license details there.',
+					''
+				);
+			}
+
 			// modernizr
 			$this->journal3->document->addScript('catalog/view/theme/journal3/lib/modernizr/modernizr-custom.js');
 
@@ -108,17 +130,64 @@ class ControllerJournal3Startup extends Controller {
 			}
 
 			// icons
-			if (is_file(DIR_TEMPLATE . 'journal3/icons_custom/style.css')) {
-				$icons = 'icons_custom';
+			if (is_file(DIR_TEMPLATE . 'journal3/icons_custom/selection.json')) {
+				$icons_folder = 'catalog/view/theme/journal3/icons_custom';
 			} else {
-				$icons = 'icons';
+				$icons_folder = 'catalog/view/theme/journal3/icons';
 			}
 
-			if (is_file(DIR_TEMPLATE . 'journal3/' . $icons . '/style.minimal.css')) {
-				$this->journal3->document->addStyle('catalog/view/theme/journal3/' . $icons . '/style.minimal.css');
-			} else {
-				$this->journal3->document->addStyle('catalog/view/theme/journal3/' . $icons . '/style.css');
+			$icons_ver = substr(md5_file($icons_folder . '/selection.json'), 0, 10);
+
+			$cache_key = 'icons.' . substr(md5($icons_folder), 0, 10);
+			$cache = $this->journal3->cache->get($cache_key, false);
+
+			if ($cache === false) {
+				$types = ['woff2' => 'woff2', 'woff' => 'woff', 'ttf' => 'truetype', 'svg' => 'svg'];
+				$src = [];
+
+				foreach ($types as $type => $format) {
+					if (is_file($icons_folder . '/fonts/icomoon.' . $type)) {
+						$src[] = "url('{$this->journal3->document->staticUrl($icons_folder . '/fonts/icomoon.' . $type . '?v=' . $icons_ver, true)}') format('{$format}')";
+					}
+				}
+
+				$src = implode(',', $src);
+
+				$cache = \Journal3\Minifier::minifyCSS("
+				@font-face {
+					font-family: 'icomoon';
+					src: {$src};
+					font-weight: normal;
+					font-style: normal;
+					font-display: block;
+				}
+				
+				.icon {
+					/* use !important to prevent issues with browser extensions that change fonts */
+					font-family: 'icomoon' !important;
+					speak: never;
+					font-style: normal;
+					font-weight: normal;
+					font-variant: normal;
+					text-transform: none;
+					line-height: 1;
+					-webkit-font-smoothing: antialiased;
+					-moz-osx-font-smoothing: grayscale;
+				}
+			");
+
+				$this->journal3->cache->set($cache_key, $cache, false);
 			}
+
+			$this->journal3->document->addCss($cache, 'icons');
+
+			if (is_file($icons_folder . '/fonts/icomoon.woff2')) {
+				$icons_font = $icons_folder . '/fonts/icomoon.woff2';
+			} else {
+				$icons_font = $icons_folder . '/fonts/icomoon.woff';
+			}
+
+			$this->journal3->settings->set('icons_preload_url', $this->journal3->document->staticUrl($icons_font . '?v=' . $icons_ver, true));
 
 			// common.js
 			$this->journal3->document->addScript('catalog/view/javascript/common.js');

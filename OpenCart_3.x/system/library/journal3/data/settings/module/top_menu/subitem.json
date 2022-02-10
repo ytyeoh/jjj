@@ -16,7 +16,7 @@
   },
   "icon": {
     "type": "Icon",
-    "selector": ".top-menu-%s li.top-menu-item-%s > a::before"
+    "selector": ".top-menu-%s .j-menu .j-menu li.top-menu-item-%s > a::before"
   },
   "iconHover": {
     "type": "Color",

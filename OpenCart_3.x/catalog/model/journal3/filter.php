@@ -100,6 +100,12 @@ class ModelJournal3Filter extends Model {
 			}
 
 			switch ($k) {
+				case 'filter';
+					if ($v) {
+						$filter_data['filters'][] = explode(',', $v);
+					}
+					break;
+
 				case 'fmin';
 					$filter_data['price']['min'] = (float)$v;
 					break;
@@ -216,7 +222,7 @@ class ModelJournal3Filter extends Model {
 			return null;
 		}
 
-		return '&' . rawurldecode(http_build_query($result));
+		return '&' . http_build_query($result);
 	}
 
 	public function setFilterData($filter_data) {
@@ -444,7 +450,8 @@ class ModelJournal3Filter extends Model {
 				MAX(ovd.option_value_id) id, 
 				MAX(ovd.name) value, 
 				COUNT(*) total, 
-				ov.image image
+				ov.image image,
+				ov.sort_order sort_order
 			FROM `" . DB_PREFIX . "product` p
 			LEFT JOIN `" . DB_PREFIX . "product_option_value` pov ON (p.product_id = pov.product_id)
 			LEFT JOIN `" . DB_PREFIX . "option_value` ov ON (pov.option_value_id = ov.option_value_id) 
@@ -469,7 +476,7 @@ class ModelJournal3Filter extends Model {
 			HAVING 
 				COUNT(*) > 0 
 			ORDER BY 
-				ov.sort_order, ovd.name
+				ovd.name
 		";
 
 		$query = $this->dbQuery($sql, 'OPTIONS');
@@ -485,10 +492,11 @@ class ModelJournal3Filter extends Model {
 				);
 			}
 			$results[$row['option_id']]['values'][$row['id']] = array(
-				'id'    => $row['id'],
-				'value' => $row['value'],
-				'image' => $row['image'],
-				'total' => $row['total'],
+				'id'         => $row['id'],
+				'value'      => $row['value'],
+				'image'      => $row['image'],
+				'total'      => $row['total'],
+				'sort_order' => $row['sort_order'],
 			);
 		}
 
@@ -504,7 +512,8 @@ class ModelJournal3Filter extends Model {
 						MAX(ovd.option_value_id) id, 
 						MAX(ovd.name) value, 
 						COUNT(*) total, 
-						ov.image image
+						ov.image image,
+						ov.sort_order sort_order
 					FROM `" . DB_PREFIX . "product` p
 					LEFT JOIN `" . DB_PREFIX . "product_option_value` pov ON (p.product_id = pov.product_id)
 					LEFT JOIN `" . DB_PREFIX . "option_value` ov ON (pov.option_value_id = ov.option_value_id) 
@@ -529,7 +538,7 @@ class ModelJournal3Filter extends Model {
 					HAVING 
 						COUNT(*) > 0 
 					ORDER BY 
-						ov.sort_order, ovd.name
+						ovd.name
 				";
 
 				$query = $this->dbQuery($sql, 'OPTIONS');
@@ -537,27 +546,39 @@ class ModelJournal3Filter extends Model {
 				foreach ($query->rows as $row) {
 					if ($row['option_id'] == $option_id) {
 						$results[$row['option_id']]['values'][$row['id']] = array(
-							'id'    => $row['id'],
-							'value' => $row['value'],
-							'image' => $row['image'],
-							'total' => $row['total'],
+							'id'         => $row['id'],
+							'value'      => $row['value'],
+							'image'      => $row['image'],
+							'total'      => $row['total'],
+							'sort_order' => $row['sort_order']
 						);
 					}
 				}
 			}
 		}
 
+		foreach ($results as &$result) {
+			if (empty($result['values'])) {
+				continue;
+			}
+
+			usort($result['values'], function ($a, $b) {
+				return strnatcmp($a['sort_order'], $b['sort_order']);
+			});
+		}
+
 		return $results;
 	}
 
-	public function getFilters() {
+	public function getFilters($opts = array()) {
 		$sql = "
 			SELECT
 				f.filter_id id,
 				fd.name filter_name,
 				fg.filter_group_id filter_group_id,
 				fgd.name filter_group_name,
-				COUNT(*) total
+				COUNT(*) total,
+			    f.sort_order as sort_order
 			FROM `" . DB_PREFIX . "product` p
 			LEFT JOIN `" . DB_PREFIX . "product_filter` pf ON (p.product_id = pf.product_id)
 			LEFT JOIN `" . DB_PREFIX . "filter` f ON (f.filter_id = pf.filter_id)
@@ -566,7 +587,19 @@ class ModelJournal3Filter extends Model {
 			LEFT JOIN `" . DB_PREFIX . "filter_group_description` fgd ON (fd.filter_group_id = fgd.filter_group_id)
 		";
 
+		if (($filter_category_id = (int)Arr::get(static::$filter_data, 'filter_category_id')) && Arr::get($opts, 'filtersCategoryCheck')) {
+			$sql .= "
+				LEFT JOIN `" . DB_PREFIX . "category_filter` cf ON (f.filter_id = cf.filter_id)
+			";
+		}
+
 		$sql .= $this->addFilters(static::$filter_data, 'filters');
+
+		if (($filter_category_id = (int)Arr::get(static::$filter_data, 'filter_category_id')) && Arr::get($opts, 'filtersCategoryCheck')) {
+			$sql .= "
+				AND cf.category_id = '" . (int)$filter_category_id . "'
+			";
+		}
 
 		$sql .= "
 				AND fd.language_id = '" . (int)$this->config_language_id . "' 
@@ -574,7 +607,7 @@ class ModelJournal3Filter extends Model {
 			GROUP BY pf.filter_id 
 			HAVING COUNT(*) > 0 
 			ORDER BY 
-				f.sort_order, fd.name
+				fd.name
 		";
 
 		$query = $this->dbQuery($sql, 'FILTERS');
@@ -590,9 +623,10 @@ class ModelJournal3Filter extends Model {
 				);
 			}
 			$results[$row['filter_group_id']]['values'][$row['id']] = array(
-				'id'    => $row['id'],
-				'value' => $row['filter_name'],
-				'total' => $row['total'],
+				'id'         => $row['id'],
+				'value'      => $row['filter_name'],
+				'total'      => $row['total'],
+				'sort_order' => $row['sort_order'],
 			);
 		}
 
@@ -607,7 +641,8 @@ class ModelJournal3Filter extends Model {
 						fd.name filter_name,
 						fg.filter_group_id filter_group_id,
 						fgd.name filter_group_name,
-						COUNT(*) total
+						COUNT(*) total,
+						f.sort_order sort_order
 					FROM `" . DB_PREFIX . "product` p
 					LEFT JOIN `" . DB_PREFIX . "product_filter` pf ON (p.product_id = pf.product_id)
 					LEFT JOIN `" . DB_PREFIX . "filter` f ON (f.filter_id = pf.filter_id)
@@ -616,7 +651,19 @@ class ModelJournal3Filter extends Model {
 					LEFT JOIN `" . DB_PREFIX . "filter_group_description` fgd ON (fd.filter_group_id = fgd.filter_group_id)
 				";
 
+				if (($filter_category_id = (int)Arr::get(static::$filter_data, 'filter_category_id')) && Arr::get($opts, 'filtersCategoryCheck')) {
+					$sql .= "
+						LEFT JOIN `" . DB_PREFIX . "category_filter` cf ON (f.filter_id = cf.filter_id)
+					";
+				}
+
 				$sql .= $this->addFilters($filter_data, 'filters');
+
+				if (($filter_category_id = (int)Arr::get(static::$filter_data, 'filter_category_id')) && Arr::get($opts, 'filtersCategoryCheck')) {
+					$sql .= "
+						AND cf.category_id = '" . (int)$filter_category_id . "'
+					";
+				}
 
 				$sql .= "
 						AND fd.language_id = '" . (int)$this->config_language_id . "' 
@@ -624,7 +671,7 @@ class ModelJournal3Filter extends Model {
 					GROUP BY pf.filter_id 
 					HAVING COUNT(*) > 0 
 					ORDER BY 
-						f.sort_order, fd.name
+						fd.name
 				";
 
 				$query = $this->dbQuery($sql, 'FILTERS');
@@ -633,13 +680,24 @@ class ModelJournal3Filter extends Model {
 				foreach ($query->rows as $row) {
 					if ($row['filter_group_id'] == $filter_id) {
 						$results[$row['filter_group_id']]['values'][$row['id']] = array(
-							'id'    => $row['id'],
-							'value' => $row['filter_name'],
-							'total' => $row['total'],
+							'id'         => $row['id'],
+							'value'      => $row['filter_name'],
+							'total'      => $row['total'],
+							'sort_order' => $row['sort_order'],
 						);
 					}
 				}
 			}
+		}
+
+		foreach ($results as &$result) {
+			if (empty($result['values'])) {
+				continue;
+			}
+
+			usort($result['values'], function ($a, $b) {
+				return strnatcmp($a['sort_order'], $b['sort_order']);
+			});
 		}
 
 		return $results;

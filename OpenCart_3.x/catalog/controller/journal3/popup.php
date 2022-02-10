@@ -142,7 +142,7 @@ class ControllerJournal3Popup extends MenuController {
 		if (!(int)$this->settings['showAfter']) {
 			$this->journal3->document->addJs(array('popup' => array(array(
 				'm' => $this->module_id,
-				'c' => $this->settings['cookie'],
+				'c' => $this->settings['cookie'] ?? null,
 			))));
 		}
 

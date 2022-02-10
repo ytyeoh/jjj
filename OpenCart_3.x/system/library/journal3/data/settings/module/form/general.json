@@ -47,10 +47,20 @@
     "value": "Sent",
     "php": true
   },
+  "sentEmailTo": {
+    "type": "Input",
+    "value": "",
+    "php": true
+  },
   "sentEmailSubject": {
     "type": "InputLang",
     "value": "{{ $store }} - Enquiry from {{ $email }}",
     "php": true
+  },
+  "sentEmailLogo": {
+    "type": "Toggle",
+    "php": true,
+    "value": "false"
   },
   "sentEmailTitle": {
     "type": "InputLang",

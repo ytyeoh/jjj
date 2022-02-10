@@ -103,6 +103,11 @@
     "type": "Margin",
     "selector": ".module-categories-%s .category-grid:not(.swiper-wrapper)"
   },
+  "images": {
+    "type": "Toggle",
+    "value": "true",
+    "php": true
+  },
   "imageDimensions": {
     "type": "ImageDimensions",
     "php": true

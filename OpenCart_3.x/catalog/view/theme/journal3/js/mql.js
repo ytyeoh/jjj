@@ -171,7 +171,7 @@ if (window.NodeList && !NodeList.prototype.forEach) {
 
 	var mqls = {
 		phone: window.matchMedia('(max-width: 768px)'),
-		tablet: window.matchMedia('(max-width: 1023px)'),
+		tablet: window.matchMedia('(max-width: 1024px)'),
 		menu: window.matchMedia('(max-width: ' + Journal['mobileMenuOn'] + 'px)')
 	};
 

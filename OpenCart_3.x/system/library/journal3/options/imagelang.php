@@ -10,7 +10,7 @@ class ImageLang extends Option {
 		if (is_array($value)) {
 			$result = Arr::get($value, 'lang_' . $data['config']['language_id']);
 
-			if (!$result) {
+			if (!$result || !is_file(DIR_IMAGE . $result)) {
 				$result = Arr::get($value, 'lang_' . $data['config']['default_language_id']);
 			}
 		} else {

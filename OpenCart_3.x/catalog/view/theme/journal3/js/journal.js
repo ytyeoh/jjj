@@ -330,7 +330,7 @@ jQuery(function ($) {
 		}));
 
 		Journal.infiniteScrollInstance.on('load', function (event) {
-			if (window['URL']) {
+			try {
 				var u = new URL(event.url);
 
 				u.host = window.location.host;
@@ -338,6 +338,7 @@ jQuery(function ($) {
 				u.protocol = window.location.protocol;
 
 				event.url = u.toString();
+			} catch (e) {
 			}
 		});
 
@@ -1014,16 +1015,21 @@ jQuery(function ($) {
 	// Contact Form
 	$('.module-form').each(function () {
 		if ($.fn.datetimepicker) {
+			var language = $('form', this).data('language');
+
 			$('.date', this).datetimepicker({
+				language: language,
 				pickTime: false
 			});
 
 			$('.datetime', this).datetimepicker({
+				language: language,
 				pickDate: true,
 				pickTime: true
 			});
 
 			$('.time', this).datetimepicker({
+				language: language,
 				pickDate: false
 			});
 		}
@@ -1247,7 +1253,7 @@ jQuery(function ($) {
 	});
 
 	// Mobile Filter Wrapper
-	if (Journal['isPhone'] || (Journal['isTablet'] && (!Journal['globalPageColumnLeftTabletStatus'] || !Journal['globalPageColumnLeftTabletStatus']))) {
+	if (Journal['isPhone'] || (Journal['isTablet'] && (!Journal['globalPageColumnLeftTabletStatus'] || !Journal['globalPageColumnRightTabletStatus']))) {
 		if ($('.module-filter').length) {
 			$('.module-filter h3 > *').prependTo('.mobile-filter-container .mobile-wrapper-header');
 			$('.module-filter').appendTo('.mobile-filter-wrapper');
@@ -1351,7 +1357,7 @@ jQuery(function ($) {
 		if (Journal['isPopup'] ? Journal['quickviewPageStylePriceUpdate'] : Journal['productPageStylePriceUpdate']) {
 			function autoUpdatePrice() {
 				$.ajax({
-					url: 'index.php?route=journal3/price',
+					url: 'index.php?route=journal3/price&popup=' + (Journal['isPopup'] ? 1 : 0),
 					type: 'post',
 					data: $('#product-id, #product-quantity, #product input[type="radio"]:checked, #product input[type="checkbox"]:checked, #product select'),
 					dataType: 'json',
@@ -1365,6 +1371,18 @@ jQuery(function ($) {
 						if (json['response']['status'] === 'error') {
 							alert(json['response']['message']);
 						} else {
+							if (Journal['isPopup'] ? Journal['quickviewPageStyleProductStockUpdate'] : Journal['productPageStyleProductStockUpdate']) {
+								if (json['response']['stock']) {
+									$('.product-stock span').html(json['response']['stock']);
+								}
+
+								if (json['response']['in_stock']) {
+									$('.product-stock').removeClass('out-of-stock').addClass('in-stock');
+								} else {
+									$('.product-stock').removeClass('in-stock').addClass('out-of-stock');
+								}
+							}
+
 							if (json['response']['tax']) {
 								$('.product-tax').html(json['response']['tax']);
 							}
@@ -1507,7 +1525,12 @@ $(window).on('load', function () {
 
 	$('.search-button').on('click', function () {
 		var url = $(this).data('search-url');
-		var value = $search.val();
+		var value = $search.val().trim();
+
+		if (!value) {
+			return false;
+		}
+
 		var category_id = parseInt($search.attr('data-category_id'));
 
 		if (value) {
@@ -1520,6 +1543,10 @@ $(window).on('load', function () {
 
 		if (category_id) {
 			url += '&category_id=' + category_id;
+
+			if (Journal['searchStyleSearchAutoSuggestSubCategories']) {
+				url += '&sub_category=true';
+			}
 		}
 
 		location = url;
@@ -1558,6 +1585,10 @@ $(window).on('load', function () {
 
 				if (category_id) {
 					data.category_id = category_id;
+
+					if (Journal['searchStyleSearchAutoSuggestSubCategories']) {
+						data.sub_category = true;
+					}
 				}
 
 				return $.ajax({

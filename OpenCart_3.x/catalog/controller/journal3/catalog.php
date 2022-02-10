@@ -103,8 +103,8 @@ class ControllerJournal3Catalog extends ModuleController {
 							$data['items'][] = array(
 								'name'    => $result['name'],
 								'href'    => $this->url->link('product/category', 'path=' . $category_path . '_' . $result['category_id']),
-								'image'   => $this->model_journal3_image->resize($result['image'], $this->settings['imageDimensions']['width'], $this->settings['imageDimensions']['height'], $this->settings['imageDimensions']['resize']),
-								'image2x' => $this->model_journal3_image->resize($result['image'], $this->settings['imageDimensions']['width'] * 2, $this->settings['imageDimensions']['height'] * 2, $this->settings['imageDimensions']['resize']),
+								'image'   => $this->settings['images'] ? $this->model_journal3_image->resize($result['image'], $this->settings['imageDimensions']['width'], $this->settings['imageDimensions']['height'], $this->settings['imageDimensions']['resize']) : '',
+								'image2x' => $this->settings['images'] ? $this->model_journal3_image->resize($result['image'], $this->settings['imageDimensions']['width'] * 2, $this->settings['imageDimensions']['height'] * 2, $this->settings['imageDimensions']['resize']) : '',
 							);
 						}
 
@@ -125,8 +125,8 @@ class ControllerJournal3Catalog extends ModuleController {
 							$data['items'][] = array(
 								'name'    => $result['name'],
 								'href'    => $this->url->link('product/product', 'path=' . $category_path . '&product_id=' . $result['product_id']),
-								'image'   => $this->model_journal3_image->resize($result['image'], $this->settings['imageDimensions']['width'], $this->settings['imageDimensions']['height'], $this->settings['imageDimensions']['resize']),
-								'image2x' => $this->model_journal3_image->resize($result['image'], $this->settings['imageDimensions']['width'] * 2, $this->settings['imageDimensions']['height'] * 2, $this->settings['imageDimensions']['resize']),
+								'image'   => $this->settings['images'] ? $this->model_journal3_image->resize($result['image'], $this->settings['imageDimensions']['width'], $this->settings['imageDimensions']['height'], $this->settings['imageDimensions']['resize']) : '',
+								'image2x' => $this->settings['images'] ? $this->model_journal3_image->resize($result['image'], $this->settings['imageDimensions']['width'] * 2, $this->settings['imageDimensions']['height'] * 2, $this->settings['imageDimensions']['resize']) : '',
 							);
 						}
 
@@ -167,8 +167,8 @@ class ControllerJournal3Catalog extends ModuleController {
 					$data['items'][] = array(
 						'name'    => $result['name'],
 						'href'    => $this->url->link('product/product', 'manufacturer_id=' . $result['manufacturer_id'] . '&product_id=' . $result['product_id']),
-						'image'   => $this->model_journal3_image->resize($result['image'], $this->settings['imageDimensions']['width'], $this->settings['imageDimensions']['height'], $this->settings['imageDimensions']['resize']),
-						'image2x' => $this->model_journal3_image->resize($result['image'], $this->settings['imageDimensions']['width'] * 2, $this->settings['imageDimensions']['height'] * 2, $this->settings['imageDimensions']['resize']),
+						'image'   => $this->settings['images'] ? $this->model_journal3_image->resize($result['image'], $this->settings['imageDimensions']['width'], $this->settings['imageDimensions']['height'], $this->settings['imageDimensions']['resize']) : '',
+						'image2x' => $this->settings['images'] ? $this->model_journal3_image->resize($result['image'], $this->settings['imageDimensions']['width'] * 2, $this->settings['imageDimensions']['height'] * 2, $this->settings['imageDimensions']['resize']) : '',
 					);
 				}
 

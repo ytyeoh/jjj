@@ -11,6 +11,7 @@ class ControllerJournal3Price extends Controller {
 		$this->load->language('product/product');
 
 		$product_id = Arr::get($this->request->post, 'product_id');
+		$popup = (bool)Arr::get($this->request->get, 'popup');
 		$product_info = $this->model_catalog_product->getProduct($product_id);
 
 		if ($product_info) {
@@ -18,6 +19,7 @@ class ControllerJournal3Price extends Controller {
 
 			// stock
 			$data['in_stock'] = $product_info['quantity'] > 0;
+			$data['quantity'] = $product_info['quantity'];
 
 			// options price
 			$options_price = 0;
@@ -44,8 +46,29 @@ class ControllerJournal3Price extends Controller {
 					$options_weight -= $product_option_value['weight'];
 				}
 
-				if ($product_option_value['subtract'] && (!$product_option_value['quantity'] || $product_option_value['quantity'] < $quantity)) {
-					$data['in_stock'] = false;
+				if ($product_option_value['subtract']) {
+					if ($product_option_value['quantity'] < $data['quantity']) {
+						$data['quantity'] = $product_option_value['quantity'];
+					}
+
+					if (!$product_option_value['quantity'] || $product_option_value['quantity'] < $quantity) {
+						$data['in_stock'] = false;
+					}
+				}
+			}
+
+			// stock status
+			if ($data['quantity'] < $quantity) {
+				$data['stock'] = $product_info['stock_status'];
+				$data['in_stock'] = false;
+			} elseif ($this->config->get('config_stock_display')) {
+				$data['stock'] = $data['quantity'];
+			} else {
+				$data['stock'] = $this->journal3->settings->get($popup ? 'quickviewPageStyleProductInStockText' : 'productPageStyleProductInStockText');
+
+				// some third party addons for in stock status
+				if (isset($product_info['in_stock_status']) && $product_info['in_stock_status']) {
+					$data['stock'] = $product_info['in_stock_status'];
 				}
 			}
 

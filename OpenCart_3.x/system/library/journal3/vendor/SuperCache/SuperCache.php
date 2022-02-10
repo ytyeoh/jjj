@@ -154,7 +154,7 @@ class SuperCache
      */
     private function isExists()
     {
-        if (file_exists($this->path . "$this->key")) {
+        if (is_file($this->path . "$this->key")) {
             return true;
         } else {
             return false;

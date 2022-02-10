@@ -60,7 +60,7 @@ window.averta = {};
 
 		if('result' in arguments.callee) return arguments.callee.result;
 
-		var regex = /^(Moz|Webkit|Khtml|O|ms|Icab)(?=[A-Z])/;
+		var regex = /^(Moz|Webkit|Khtml|O|Icab)(?=[A-Z])/;
 
 		var someScript = document.getElementsByTagName('script')[0];
 

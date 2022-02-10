@@ -36,7 +36,8 @@
   },
   "layerAutoplay": {
     "type": "Toggle",
-    "value": "false"
+    "value": "false",
+    "php": true
   },
   "videoHtml5Url": {
     "type": "InputLang",

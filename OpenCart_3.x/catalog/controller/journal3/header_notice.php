@@ -9,7 +9,7 @@ class ControllerJournal3HeaderNotice extends ModuleController {
 
 		$this->journal3->document->addJs(array('headerNotice' => array(array(
 			'm' => $this->module_id,
-			'c' => $this->settings['cookie'],
+			'c' => $this->settings['cookie'] ?? null,
 		))));
 
 		return $data;

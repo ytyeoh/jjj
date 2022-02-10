@@ -22,6 +22,7 @@
     "rules": {
       "@": {
         ".hide-cart.product-layout .cart-group": "display:none !important",
+        ".hide-cart.product-layout .side-product .btn-cart": "display:none !important",
         ".hide-cart.product-info .cart-group .stepper": "display:none !important",
         ".hide-cart.product-info .cart-group #button-cart": "display:none !important",
         ".popup-quickview .product-info.hide-cart .stepper-group": "display:none !important",

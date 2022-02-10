@@ -225,7 +225,7 @@ $JOURNAL3_TABLES = array(
 				`language_id` INT(11) NOT NULL,
 				`text` VARCHAR(256) NOT NULL,
 				`sort_order` INT(3) NOT NULL DEFAULT 0,
-				PRIMARY KEY (`product_id`,`attribute_id`,`language_id`, `text`)
+				PRIMARY KEY (`product_id`,`attribute_id`,`language_id`)
 			) ENGINE=MyISAM  DEFAULT CHARSET=utf8
 		',
 );

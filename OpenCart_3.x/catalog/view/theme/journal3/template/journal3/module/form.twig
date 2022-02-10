@@ -4,7 +4,7 @@
     <h3 class="title module-title">{{ title }}</h3>
   {% endif %}
   <div class="module-body">
-    <form action="{{ action }}" method="post" enctype="multipart/form-data" class="form-horizontal">
+    <form action="{{ action }}" method="post" enctype="multipart/form-data" class="form-horizontal" data-language="{{ datepicker }}">
       <fieldset>
         {% for index, item in items %}
           {% if item.type == 'legend' %}
@@ -106,7 +106,7 @@
               <label class="col-sm-2 control-label" for="{{ id }}-{{ index }}">{{ item.label }}</label>
               <div class="col-sm-10">
                 <div class="input-group date" data-picker-class="module-form-{{ module_id }}">
-                  <input type="text" name="item[{{ index }}]" value="" placeholder="{{ item.label }}" data-date-format="YYYY-MM-DD" data-locale="{{ datepicker }}" id="{{ id }}-{{ index }}" class="form-control"/>
+                  <input type="text" name="item[{{ index }}]" value="" placeholder="{{ item.label }}" data-date-format="YYYY-MM-DD" id="{{ id }}-{{ index }}" class="form-control"/>
                   <div class="input-group-btn">
                     <button type="button" class="btn btn-default"><i class="fa fa-calendar"></i></button>
                   </div>
@@ -120,7 +120,7 @@
               <label class="col-sm-2 control-label" for="{{ id }}-{{ index }}">{{ item.label }}</label>
               <div class="col-sm-10">
                 <div class="input-group time" data-picker-class="module-form-{{ module_id }}">
-                  <input type="text" name="item[{{ index }}]" value="" placeholder="{{ item.label }}" data-date-format="HH:mm" data-locale="{{ datepicker }}" id="{{ id }}-{{ index }}" class="form-control"/>
+                  <input type="text" name="item[{{ index }}]" value="" placeholder="{{ item.label }}" data-date-format="HH:mm" id="{{ id }}-{{ index }}" class="form-control"/>
                   <div class="input-group-btn">
                     <button type="button" class="btn btn-default"><i class="fa fa-calendar"></i></button>
                   </div>
@@ -134,7 +134,7 @@
               <label class="col-sm-2 control-label" for="{{ id }}-{{ index }}">{{ item.label }}</label>
               <div class="col-sm-10">
                 <div class="input-group datetime" data-picker-class="module-form-{{ module_id }}">
-                  <input type="text" name="item[{{ index }}]" value="" placeholder="{{ item.label }}" data-date-format="YYYY-MM-DD HH:mm" data-locale="{{ datepicker }}" id="{{ id }}-{{ index }}" class="form-control"/>
+                  <input type="text" name="item[{{ index }}]" value="" placeholder="{{ item.label }}" data-date-format="YYYY-MM-DD HH:mm" id="{{ id }}-{{ index }}" class="form-control"/>
                   <div class="input-group-btn">
                     <button type="button" class="btn btn-default"><i class="fa fa-calendar"></i></button>
                   </div>

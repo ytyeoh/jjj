@@ -3,7 +3,7 @@
 
   <div class="section-body">
     <div class="section-comments" v-bind:class="{ 'has-error': error && error.comments }">
-      <textarea class="form-control" v-model="order_data.comment" placeholder="{{ text_comments }}"></textarea>
+      <textarea class="form-control" placeholder="{{ text_comments }}">{{ comment }}</textarea>
     </div>
 
     {% if newsletter %}
@@ -23,6 +23,13 @@
       <div class="checkbox">
         <label><input v-model="agree" type="checkbox"/>{{ agree }}</label>
         <span class="text-danger" v-if="error && error.agree" v-html="error.agree"></span>
+      </div>
+    {% endif %}
+
+    {% if captcha %}
+      <div class="captcha" v-bind:class="{ 'has-error': error && error.captcha }">
+        {{ captcha }}
+        <span class="text-danger" v-if="error && error.captcha" v-html="error.captcha"></span>
       </div>
     {% endif %}
 

@@ -293,7 +293,13 @@ class Parser {
 			$a = explode('_', $a);
 			$b = explode('_', $b);
 
-			return (int)$a[1] < (int)$b[1];
+			if ((int)$a[1] < (int)$b[1]) {
+				return 1;
+			} else if ((int)$a[1] > (int)$b[1]) {
+				return -1;
+			}
+
+			return 0;
 		});
 
 		foreach ($this->css as $media => $selectors) {

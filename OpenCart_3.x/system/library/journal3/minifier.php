@@ -118,9 +118,9 @@ class Minifier {
 
 					file_put_contents($_file, $_content);
 
-					$content .= $_content;
+					$content .= PHP_EOL . $_content;
 				} else {
-					$content .= file_get_contents($_file);
+					$content .= PHP_EOL . file_get_contents($_file);
 				}
 			}
 

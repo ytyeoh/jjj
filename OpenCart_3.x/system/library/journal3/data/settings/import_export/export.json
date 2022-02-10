@@ -34,10 +34,10 @@
     "type": "Toggle",
     "value": "false"
   },
-  "tf_user": {
+  "license_user": {
     "type": "Input"
   },
-  "tf_pc": {
+  "license_key": {
     "type": "Input"
   }
 }

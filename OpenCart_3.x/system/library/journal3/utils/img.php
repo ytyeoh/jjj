@@ -15,10 +15,18 @@ class Img {
 		if (static::$status === null) {
 			$cwebp = static::exec("cwebp -version 2>&1");
 
+			if ($cwebp && !static::is_func_enabled('escapeshellarg')) {
+				$cwebp = false;
+			}
+
+			if (!$cwebp && function_exists('imagewebp')) {
+				$cwebp = array('GD');
+			}
+
 			static::$status = array(
 				'optipng'   => static::exec("optipng --version 2>&1"),
 				'jpegoptim' => static::exec("jpegoptim --version 2>&1"),
-				'cwebp'     => $cwebp ? $cwebp : (function_exists('imagewebp') ? ['GD'] : false),
+				'cwebp'     => $cwebp,
 			);
 		}
 
@@ -76,17 +84,7 @@ class Img {
 	}
 
 	private static function exec($cmd) {
-		if (!function_exists('exec')) {
-			return false;
-		}
-
-		if (in_array(strtolower(ini_get('safe_mode')), array('on', '1'), true)) {
-			return false;
-		}
-
-		$disabled_functions = explode(',', ini_get('disable_functions'));
-
-		if (in_array('exec', $disabled_functions)) {
+		if (!static::is_func_enabled('exec')) {
 			return false;
 		}
 
@@ -113,6 +111,24 @@ class Img {
 		}
 
 		return null;
+	}
+
+	public static function is_func_enabled($func) {
+		if (!function_exists($func)) {
+			return false;
+		}
+
+		if (in_array(strtolower(ini_get('safe_mode')), array('on', '1'), true)) {
+			return false;
+		}
+
+		$disabled_functions = array_map('trim', explode(',', ini_get('disable_functions')));
+
+		if (in_array($func, $disabled_functions)) {
+			return false;
+		}
+
+		return true;
 	}
 
 }

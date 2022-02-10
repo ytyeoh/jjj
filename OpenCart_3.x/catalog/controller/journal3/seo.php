@@ -69,6 +69,11 @@ class ControllerJournal3Seo extends Controller {
 				'content' => 'summary',
 			);
 
+			$tags['twitter:site'] = array(
+				'type'    => 'name',
+				'content' => '@' . trim($this->journal3->settings->get('seoTwitterCardsTwitterUser'), '@'),
+			);
+
 			$tags['twitter:title'] = array(
 				'type'    => 'name',
 				'content' => static::getTags('title'),
@@ -206,7 +211,7 @@ class ControllerJournal3Seo extends Controller {
 
 			if (static::getTags('brand')) {
 				$json['brand'] = array(
-					'@type' => 'Thing',
+					'@type' => 'Brand',
 					'name'  => static::getTags('brand'),
 				);
 			}
@@ -297,7 +302,7 @@ class ControllerJournal3Seo extends Controller {
 							static::$tags['sku'] = $product_info['sku'];
 							static::$tags['mpn'] = $product_info['mpn'];
 							static::$tags['model'] = $product_info['model'];
-							static::$tags['price'] = number_format($this->tax->calculate($product_info['special'] ? $product_info['special'] : $product_info['price'], $product_info['tax_class_id'], $this->config->get('config_tax')), 2, '.', '');
+							static::$tags['price'] = number_format($this->currency->format($this->tax->calculate($product_info['special'] ? $product_info['special'] : $product_info['price'], $product_info['tax_class_id'], $this->config->get('config_tax')), $this->session->data['currency'], '', false), 2, '.', '');
 							static::$tags['priceCurrency'] = $this->session->data['currency'];
 							static::$tags['stock'] = $product_info['quantity'] > 0;
 							static::$tags['brand'] = $product_info['manufacturer'];

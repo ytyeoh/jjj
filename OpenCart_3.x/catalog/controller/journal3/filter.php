@@ -31,6 +31,10 @@ class ControllerJournal3Filter extends ModuleController {
 			return null;
 		}
 
+		if ($this->request->get['route'] === 'product/search' && empty($this->request->get['search'])) {
+			return null;
+		}
+
 		// check for products
 		if (!$this->model_journal3_filter->getTotalProducts() && !$this->model_journal3_filter->hasFilterData('price')) {
 			return null;
@@ -301,7 +305,7 @@ class ControllerJournal3Filter extends ModuleController {
 		}
 
 		// attributes
-		if (Arr::hasKeyStartingWith($this->settings['items'], 'a')) {
+		if (Arr::hasKeyStartingWith($this->settings['items'], 'a') && Arr::get($this->settings, 'attributes')) {
 			Profiler::start('journal3/filter/attributes');
 
 			$all_attributes = $this->model_journal3_filter->getAttributes();
@@ -336,7 +340,7 @@ class ControllerJournal3Filter extends ModuleController {
 		}
 
 		// options
-		if (Arr::hasKeyStartingWith($this->settings['items'], 'o')) {
+		if (Arr::hasKeyStartingWith($this->settings['items'], 'o') && Arr::get($this->settings, 'options')) {
 			Profiler::start('journal3/filter/options');
 
 			$all_options = $this->model_journal3_filter->getOptions();
@@ -381,10 +385,12 @@ class ControllerJournal3Filter extends ModuleController {
 		}
 
 		// filters
-		if (Arr::hasKeyStartingWith($this->settings['items'], 'f')) {
+		if (Arr::hasKeyStartingWith($this->settings['items'], 'f') && Arr::get($this->settings, 'filters')) {
 			Profiler::start('journal3/filter/filters');
 
-			$all_filters = $this->model_journal3_filter->getFilters();
+			$all_filters = $this->model_journal3_filter->getFilters(array(
+				'filtersCategoryCheck' => Arr::get($this->settings, 'filtersCategoryCheck')
+			));
 
 			Profiler::end('journal3/filter/filters');
 

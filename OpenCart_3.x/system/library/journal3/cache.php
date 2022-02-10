@@ -108,7 +108,7 @@ class Cache {
 				static::$config['customer_group_id'],
 				static::$config['webp'],
 				static::$config['admin'],
-				JOURNAL3_VERSION
+				defined('JOURNAL3_BUILD') ? JOURNAL3_BUILD : JOURNAL3_VERSION
 			);
 		}
 

@@ -185,6 +185,8 @@ window['cart'].add = function (product_id, quantity, quick_buy) {
 
 				if (parent.window['_QuickCheckout']) {
 					parent.window['_QuickCheckout'].save();
+				} else if ($('html').hasClass('route-checkout-cart') || $('html').hasClass('route-checkout-checkout')) {
+					parent.location.reload();
 				}
 			}
 		},

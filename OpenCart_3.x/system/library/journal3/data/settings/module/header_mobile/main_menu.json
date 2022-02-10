@@ -148,7 +148,9 @@
     "rules": {
       "logo": {
         ".mobile-header-active .mobile-1 .menu-trigger": "position:absolute; left:0",
-        ".mobile-header-active .mobile-1 .mobile-logo-wrapper": "margin-left:50px"
+        ".mobile-header-active .mobile-1 .mobile-logo-wrapper": "margin-left:50px",
+        "html[dir='rtl'].mobile-header-active .mobile-1 .menu-trigger": "position:absolute; left:auto; right:0",
+        "html[dir='rtl'].mobile-header-active .mobile-1 .mobile-logo-wrapper": "margin-left:0; margin-right:50px"
       }
     }
   },

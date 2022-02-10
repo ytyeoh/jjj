@@ -510,6 +510,11 @@
     "value": "true",
     "php": true
   },
+  "ProductStockUpdate": {
+    "type": "Toggle",
+    "value": "false",
+    "js": true
+  },
   "ProductStockText": {
     "type": "InputLang",
     "value": "Stock",

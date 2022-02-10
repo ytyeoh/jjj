@@ -68,6 +68,9 @@ class ModelJournal3Settings extends \Journal3\Opencart\Model {
 			$results[$row['setting_name']] = $this->decode($row['setting_value'], $row['serialized']);
 		}
 
+		$results['dashboard_user'] = $results['dashboard_user_' . $this->config->get('config_store_id')] ?? '';
+		$results['dashboard_key'] = $results['dashboard_key_' . $this->config->get('config_store_id')] ?? '';
+
 		$skin_id = Arr::get($results, 'active_skin', 0);
 
 		// skin settings

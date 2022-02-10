@@ -87,13 +87,13 @@
 
     <div v-for="custom_field in custom_fields.custom_fields.account" v-if="custom_field.type === 'checkbox'" v-bind:id="'account-custom-field' + custom_field.custom_field_id" v-bind:class="'form-group custom-field' + (custom_field.required ? ' required' : '')">
       <label class="control-label" v-html="custom_field.name"></label>
-      <div v-bind:id="'input-account-custom-field' + custom_field.custom_field_id"> {% for custom_field_value in custom_field.custom_field_value %}
-          <div class="checkbox">
-            <label>
-              <input type="checkbox" name="custom_field[{{ custom_field.location }}][{{ custom_field.custom_field_id }}][]" value="{{ custom_field_value.custom_field_value_id }}"/>
-              {{ custom_field_value.name }}</label>
-          </div>
-        {% endfor %} </div>
+      <div v-bind:id="'input-account-custom-field' + custom_field.custom_field_id">
+        <div class="checkbox" v-for="custom_field_value in custom_field.custom_field_value">
+          <label>
+            <input type="checkbox" v-model="order_data.custom_field[custom_field.custom_field_id]" v-bind:value="custom_field_value.custom_field_value_id"/>
+            <span v-html="custom_field_value.name"></span></label>
+        </div>
+      </div>
       <span class="text-danger" v-if="error && error.custom_field && error.custom_field[custom_field.custom_field_id]" v-html="error.custom_field[custom_field.custom_field_id]"></span>
     </div>
 

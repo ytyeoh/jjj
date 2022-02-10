@@ -205,7 +205,19 @@ class ModelJournal3Module extends Model {
 	}
 
 	public function explodeAttributeValues($separator) {
-		$this->db->query("TRUNCATE TABLE `{$this->dbPrefix('journal3_product_attribute')}`");
+		$this->db->query("DROP TABLE IF EXISTS `{$this->dbPrefix('journal3_product_attribute')}`");
+
+		$this->db->query(sprintf('
+			CREATE TABLE IF NOT EXISTS `%s` (
+				`product_attribute_id` int(11) NOT NULL AUTO_INCREMENT, 
+				`product_id` INT(11) NOT NULL,
+				`attribute_id` INT(11) NOT NULL,
+				`language_id` INT(11) NOT NULL,
+				`text` VARCHAR(256) NOT NULL,
+				`sort_order` INT(3) NOT NULL DEFAULT 0,
+				PRIMARY KEY (`product_attribute_id`)
+			) ENGINE=MyISAM  DEFAULT CHARSET=utf8
+		', $this->dbPrefix('journal3_product_attribute')));
 
 		$attribute_values = $this->db->query("
 			SELECT
@@ -214,32 +226,40 @@ class ModelJournal3Module extends Model {
 				`{$this->dbPrefix('product_attribute')}`
 		")->rows;
 
+		$insert_values = array();
+
 		foreach ($attribute_values as $attribute_value) {
-			$values = explode($separator, $attribute_value['text']);
+			$values = explode($separator, htmlspecialchars_decode($attribute_value['text']));
 
 			foreach ($values as $value) {
 				$value = trim($value);
 
 				if ($value) {
-					try {
-						$this->db->query("
-							INSERT INTO `{$this->dbPrefix('journal3_product_attribute')}` (
-								`product_id`,
-								`attribute_id`,
-								`language_id`,
-								`text`,
-								`sort_order`
-							) VALUES (
-								'{$attribute_value['product_id']}',
-								'{$attribute_value['attribute_id']}',
-								'{$attribute_value['language_id']}',
-								'{$this->dbEscape($value)}',
-								'0'
-							)
-						");
-					} catch (Exception $e) {
-					}
+					$insert_values[] = " (
+						'{$attribute_value['product_id']}',
+						'{$attribute_value['attribute_id']}',
+						'{$attribute_value['language_id']}',
+						'{$this->db->escape(htmlspecialchars($value, ENT_COMPAT, 'UTF-8'))}',
+						'0'
+					) ";
 				}
+			}
+		}
+
+		$insert_values = array_chunk($insert_values, 500);
+
+		foreach ($insert_values as $insert_value) {
+			$sql = "
+				INSERT IGNORE INTO `{$this->dbPrefix('journal3_product_attribute')}` (
+					`product_id`,
+					`attribute_id`,
+					`language_id`,
+					`text`,
+					`sort_order`
+				) VALUES " . implode(',', $insert_value);
+			try {
+				$this->db->query($sql);
+			} catch (Exception $e) {
 			}
 		}
 

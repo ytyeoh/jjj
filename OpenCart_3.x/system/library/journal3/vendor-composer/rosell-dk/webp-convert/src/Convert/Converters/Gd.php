@@ -32,6 +32,7 @@ class Gd extends AbstractConverter
             'method',
             'near-lossless',
             'preset',
+            'sharp-yuv',
             'size-in-percentage',
             'use-nice'
         ];
@@ -106,7 +107,7 @@ class Gd extends AbstractConverter
      * So, if the image is already rgb, nothing will be done, and true will be returned
      * PS: Got the workaround here: https://secure.php.net/manual/en/function.imagepalettetotruecolor.php
      *
-     * @param  resource  $image
+     * @param  resource|\GdImage  $image
      * @return boolean  TRUE if the convertion was complete, or if the source image already is a true color image,
      *          otherwise FALSE is returned.
      */
@@ -125,35 +126,32 @@ class Gd extends AbstractConverter
                 return false;
             }
 
+            $success = false;
+
             //prevent blending with default black
-            if (imagealphablending($dst, false) === false) {
-                return false;
+            if (imagealphablending($dst, false) !== false) {
+                //change the RGB values if you need, but leave alpha at 127
+                $transparent = imagecolorallocatealpha($dst, 255, 255, 255, 127);
+
+                if ($transparent !== false) {
+                    //simpler than flood fill
+                    if (imagefilledrectangle($dst, 0, 0, imagesx($image), imagesy($image), $transparent) !== false) {
+                        //restore default blending
+                        if (imagealphablending($dst, true) !== false) {
+                            if (imagecopy($dst, $image, 0, 0, 0, 0, imagesx($image), imagesy($image)) !== false) {
+                                $success = true;
+                            }
+                        };
+                    }
+                }
             }
-
-            //change the RGB values if you need, but leave alpha at 127
-            $transparent = imagecolorallocatealpha($dst, 255, 255, 255, 127);
-
-            if ($transparent === false) {
-                return false;
+            if ($success) {
+                imagedestroy($image);
+                $image = $dst;
+            } else {
+                imagedestroy($dst);
             }
-
-            //simpler than flood fill
-            if (imagefilledrectangle($dst, 0, 0, imagesx($image), imagesy($image), $transparent) === false) {
-                return false;
-            }
-
-            //restore default blending
-            if (imagealphablending($dst, true) === false) {
-                return false;
-            };
-
-            if (imagecopy($dst, $image, 0, 0, 0, 0, imagesx($image), imagesy($image)) === false) {
-                return false;
-            }
-            imagedestroy($image);
-
-            $image = $dst;
-            return true;
+            return $success;
         } else {
             // The necessary methods for converting color palette are not avalaible
             return false;
@@ -166,7 +164,7 @@ class Gd extends AbstractConverter
      * Try to convert image pallette to true color. If imagepalettetotruecolor() exists, that is used (available from
      * PHP >= 5.5.0). Otherwise using workaround found on the net.
      *
-     * @param  resource  $image
+     * @param  resource|\GdImage  $image
      * @return boolean  TRUE if the convertion was complete, or if the source image already is a true color image,
      *          otherwise FALSE is returned.
      */
@@ -175,7 +173,9 @@ class Gd extends AbstractConverter
         if (function_exists('imagepalettetotruecolor')) {
             return imagepalettetotruecolor($image);
         } else {
-            // imagepalettetotruecolor() is not available on this system. Using custom implementation instead
+            $this->logLn(
+                'imagepalettetotruecolor() is not available on this system - using custom implementation instead'
+            );
             return $this->makeTrueColorUsingWorkaround($image);
         }
     }
@@ -185,7 +185,7 @@ class Gd extends AbstractConverter
      *
      * @throws  InvalidInputException  if mime type is unsupported or could not be detected
      * @throws  ConversionFailedException  if imagecreatefrompng or imagecreatefromjpeg fails
-     * @return  resource  $image  The created image
+     * @return  resource|\GdImage  $image  The created image
      */
     private function createImageResource()
     {
@@ -217,7 +217,7 @@ class Gd extends AbstractConverter
     /**
      * Try to make image resource true color if it is not already.
      *
-     * @param  resource  $image  The image to work on
+     * @param  resource|\GdImage  $image  The image to work on
      * @return void
      */
     protected function tryToMakeTrueColorIfNot(&$image)
@@ -249,7 +249,7 @@ class Gd extends AbstractConverter
 
     /**
      *
-     * @param  resource  $image
+     * @param  resource|\GdImage  $image
      * @return boolean  true if alpha blending was set successfully, false otherwise
      */
     protected function trySettingAlphaBlending($image)
@@ -297,7 +297,7 @@ class Gd extends AbstractConverter
 
     /**
      *
-     * @param  resource  $image
+     * @param  resource|\GdImage  $image
      * @return void
      */
     protected function destroyAndRemove($image)
@@ -310,7 +310,7 @@ class Gd extends AbstractConverter
 
     /**
      *
-     * @param  resource  $image
+     * @param  resource|\GdImage  $image
      * @return void
      */
     protected function tryConverting($image)
@@ -434,8 +434,8 @@ class Gd extends AbstractConverter
     // takes care of preparing stuff before calling doConvert, and validating after.
     protected function doActualConvert()
     {
-
-        $this->logLn('GD Version: ' . gd_info()["GD Version"]);
+        $versionString = gd_info()["GD Version"];
+        $this->logLn('GD Version: ' . $versionString);
 
         // Btw: Check out processWebp here:
         // https://github.com/Intervention/image/blob/master/src/Intervention/Image/Gd/Encoder.php
@@ -448,6 +448,23 @@ class Gd extends AbstractConverter
 
 
         if ($this->getMimeTypeOfSource() == 'image/png') {
+            if (function_exists('version_compare')) {
+                if (version_compare($versionString, "2.1.1", "<=")) {
+                    $this->logLn(
+                        'BEWARE: Your version of Gd looses the alpha chanel when converting to webp.' .
+                        'You should upgrade Gd, use another converter or stop converting PNGs. ' .
+                        'See: https://github.com/rosell-dk/webp-convert/issues/238'
+                    );
+                } elseif (version_compare($versionString, "2.2.4", "<=")) {
+                    $this->logLn(
+                        'BEWARE: Older versions of Gd looses the alpha chanel when converting to webp.' .
+                        'We have not tested if transparency fails on your (rather old) version of Gd. ' .
+                        'Please let us know. ' .
+                        'See: https://github.com/rosell-dk/webp-convert/issues/238'
+                    );
+                }
+            }
+
             // Try to set alpha blending
             $this->trySettingAlphaBlending($image);
         }

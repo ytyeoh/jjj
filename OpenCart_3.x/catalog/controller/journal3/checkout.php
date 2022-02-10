@@ -54,6 +54,12 @@ class ControllerJournal3Checkout extends \Journal3\Opencart\Controller {
 
 		$data['heading_title'] = $this->journal3->settings->get('checkoutTitle');
 
+		$this->journal3->settings->set('performanceHTMLMinify', false);
+		$this->journal3->settings->set('performanceCSSMinify', false);
+		$this->journal3->settings->set('performanceCSSInline', false);
+		$this->journal3->settings->set('performanceJSMinify', false);
+		$this->journal3->settings->set('performanceJSDefer', false);
+
 		if ($this->journal3->isDev()) {
 			$this->journal3->document->addScript('catalog/view/theme/journal3/lib/vue/vue.js', 'footer');
 		} else {
@@ -91,6 +97,15 @@ class ControllerJournal3Checkout extends \Journal3\Opencart\Controller {
 		// checkout data
 		$data['checkout_data'] = $this->getCheckoutData($this->model_journal3_checkout->init());
 
+		// hide payment details for iframe payments
+		$payments = Arr::get($data['checkout_data'], 'quickCheckoutPaymentsPopup', array());
+
+		if (is_array($payments) && count($payments)) {
+			foreach ($payments as $payment) {
+				$this->journal3->document->addCss('.quick-checkout-wrapper .payment-' . $payment . ' { display: none; }');
+			}
+		}
+
 		// custom fields sort order
 		$css = array();
 
@@ -112,7 +127,7 @@ class ControllerJournal3Checkout extends \Journal3\Opencart\Controller {
 		}
 
 		if ($css) {
-			$this->journal3->document->addCss(implode($css, PHP_EOL));
+			$this->journal3->document->addCss(implode(PHP_EOL, $css));
 		}
 
 		$data['login_block'] = $this->renderView('journal3/checkout/login', array(
@@ -208,6 +223,17 @@ class ControllerJournal3Checkout extends \Journal3\Opencart\Controller {
 			'error_warning'       => $this->language->get('error_stock'),
 		));
 
+		// Captcha
+		if (!$this->customer->isLogged() && $this->config->get('captcha_' . $this->config->get('config_captcha') . '_status') && in_array('guest', (array)$this->config->get('config_captcha_page'))) {
+			$captcha = $this->load->controller('extension/captcha/' . $this->config->get('config_captcha'));
+			if ($this->config->get('config_captcha') === 'google') {
+				$captcha = str_replace('<script src="//www.google.com/recaptcha/api.js" type="text/javascript"></script>', '', $captcha);
+				$this->document->addScript('https://www.google.com/recaptcha/api.js');
+			}
+		} else {
+			$captcha = '';
+		}
+
 		$newsletter = $this->journal3->settings->get('quickCheckoutConfirmNewsletter') ? sprintf($this->language->get('entry_newsletter'), $this->config->get('config_name')) : false;
 
 		if ($this->customer->isLogged() && ($this->model_journal3_newsletter->isSubscribed($this->customer->getEmail()) || $this->customer->getNewsletter())) {
@@ -215,12 +241,14 @@ class ControllerJournal3Checkout extends \Journal3\Opencart\Controller {
 		}
 
 		$data['confirm_block'] = $this->renderView('journal3/checkout/confirm', array(
+			'captcha'         => $captcha,
 			'text_loading'    => $this->language->get('text_loading'),
 			'button_continue' => $this->language->get('button_continue'),
 			'text_comments'   => $this->language->get('text_comments'),
 			'newsletter'      => $newsletter,
 			'agree'           => Arr::get($this->model_journal3_links->getInformation($this->config->get('config_checkout_id')), 'text'),
 			'privacy'         => $this->customer->isLogged() || ($this->config->get('config_checkout_id') == $this->config->get('config_account_id')) ? null : Arr::get($this->model_journal3_links->getInformation($this->config->get('config_account_id')), 'text'),
+			'comment'         => Arr::get($data, 'checkout_data.order_data.comment'),
 		));
 
 		$data['checkout_data']['checkout_id'] = $this->model_journal3_checkout->setCheckoutId();
@@ -239,6 +267,13 @@ class ControllerJournal3Checkout extends \Journal3\Opencart\Controller {
 		$json = array();
 		$error = array();
 
+		if (!$this->model_journal3_checkout->checkCheckoutId(Arr::get($this->request->post, 'checkout_id'))) {
+			$json['redirect'] = $this->url->link('checkout/checkout', '', true);
+			$this->renderJson('success', $json);
+
+			return;
+		}
+
 		if ($this->config->get($this->journal3->isOC2() ? 'coupon_status' : 'total_coupon_status') && $this->request->post['coupon']) {
 			$this->load->language('extension/total/coupon');
 			$this->load->model('extension/total/coupon');
@@ -246,6 +281,7 @@ class ControllerJournal3Checkout extends \Journal3\Opencart\Controller {
 
 			if ($coupon_info) {
 				$this->session->data['coupon'] = $this->request->post['coupon'];
+				$json['coupon_message'] = $this->language->get('text_success');
 			} else {
 				$error['coupon'] = $this->language->get('error_coupon');
 				unset($this->session->data['coupon']);
@@ -261,6 +297,7 @@ class ControllerJournal3Checkout extends \Journal3\Opencart\Controller {
 
 			if ($voucher_info) {
 				$this->session->data['voucher'] = $this->request->post['voucher'];
+				$json['voucher_message'] = $this->language->get('text_success');
 			} else {
 				$error['voucher'] = $this->language->get('error_voucher');
 				unset($this->session->data['voucher']);
@@ -301,11 +338,15 @@ class ControllerJournal3Checkout extends \Journal3\Opencart\Controller {
 		$data = $this->model_journal3_checkout->update();
 
 		if ($this->checkCart()) {
-			$json = $this->getCheckoutData($data);
+			$json = array_replace($this->getCheckoutData($data), $json);
 
 			if (Arr::get($this->request->get, 'confirm') === 'true') {
-				if (!$this->model_journal3_checkout->checkCheckoutId(Arr::get($this->request->post, 'checkout_id'))) {
-					$error['total_mismatch'] = 'Order data may have been changed, page will reload.';
+				if (!$this->customer->isLogged() && $this->config->get('captcha_' . $this->config->get('config_captcha') . '_status') && in_array('guest', (array)$this->config->get('config_captcha_page'))) {
+					$captcha = $this->load->controller('extension/captcha/' . $this->config->get('config_captcha') . '/validate');
+
+					if ($captcha) {
+						$error['captcha'] = $captcha;
+					}
 				}
 
 				if (!Arr::get($data, 'payment_code')) {
@@ -380,6 +421,13 @@ class ControllerJournal3Checkout extends \Journal3\Opencart\Controller {
 	}
 
 	public function cart_update() {
+		if (!$this->model_journal3_checkout->checkCheckoutId(Arr::get($this->request->post, 'checkout_id'))) {
+			$json['redirect'] = $this->url->link('checkout/checkout', '', true);
+			$this->renderJson('success', $json);
+
+			return;
+		}
+
 		$key = Arr::get($this->request->post, 'key');
 		$qty = Arr::get($this->request->post, 'quantity');
 
@@ -397,6 +445,13 @@ class ControllerJournal3Checkout extends \Journal3\Opencart\Controller {
 	}
 
 	public function cart_delete() {
+		if (!$this->model_journal3_checkout->checkCheckoutId(Arr::get($this->request->post, 'checkout_id'))) {
+			$json['redirect'] = $this->url->link('checkout/checkout', '', true);
+			$this->renderJson('success', $json);
+
+			return;
+		}
+
 		$key = Arr::get($this->request->post, 'key');
 
 		$this->cart->remove($key);
@@ -606,44 +661,47 @@ class ControllerJournal3Checkout extends \Journal3\Opencart\Controller {
 		$total_items = $this->cart->countProducts() + (isset($this->session->data['vouchers']) ? count($this->session->data['vouchers']) : 0);
 
 		return array(
-			'stock_warning'         => !$this->cart->hasStock() && $this->config->get('config_stock_warning'),
-			'shipping_required'     => $this->cart->hasShipping(),
-			'account'               => $this->session->data['account'],
-			'login_email'           => '',
-			'login_password'        => '',
-			'guest'                 => (bool)$this->config->get('config_checkout_guest') && !$this->cart->hasDownload(),
-			'same_address'          => $this->session->data['same_address'],
-			'password'              => '',
-			'password2'             => '',
-			'customer_id'           => $customer_id,
-			'addresses'             => $addresses,
-			'order_data'            => $data,
-			'custom_fields'         => $data['custom_fields'],
-			'payment_address_type'  => $addresses ? 'existing' : 'new',
-			'shipping_address_type' => $addresses ? 'existing' : 'new',
-			'shipping_methods'      => $this->session->data['shipping_methods'],
-			'payment_methods'       => $this->session->data['payment_methods'],
-			'countries'             => $this->getCountries(),
-			'shipping_zones'        => $this->getZones($data['shipping_country_id']),
-			'payment_zones'         => $this->getZones($data['payment_country_id']),
-			'products'              => $this->products(),
-			'vouchers'              => $this->vouchers(),
-			'totals'                => $this->totals($data['totals']),
-			'total'                 => sprintf($this->language->get('text_items'), $total_items, $this->journal3->currencyFormat($data['total'])),
-			'total_items'           => $total_items,
-			'coupon_status'         => $this->config->get($this->journal3->isOC2() ? 'coupon_status' : 'total_coupon_status'),
-			'coupon'                => Arr::get($this->session->data, 'coupon'),
-			'voucher_status'        => $this->config->get($this->journal3->isOC2() ? 'voucher_status' : 'total_voucher_status'),
-			'voucher'               => Arr::get($this->session->data, 'voucher'),
-			'reward_status'         => $this->config->get($this->journal3->isOC2() ? 'reward_status' : 'total_reward_status'),
-			'reward'                => Arr::get($this->session->data, 'reward'),
-			'newsletter'            => $this->session->data['newsletter'],
-			'agree'                 => false,
-			'privacy'               => false,
-			'session'               => $this->journal3->isDev() ? $this->session->data : null,
-			'error'                 => null,
-			'cart'                  => $this->load->controller('common/cart'),
+			'stock_warning'              => !$this->cart->hasStock() && $this->config->get('config_stock_warning'),
+			'shipping_required'          => $this->cart->hasShipping(),
+			'account'                    => $this->session->data['account'],
+			'login_email'                => '',
+			'login_password'             => '',
+			'guest'                      => (bool)$this->config->get('config_checkout_guest') && !$this->cart->hasDownload(),
+			'same_address'               => $this->session->data['same_address'],
+			'password'                   => '',
+			'password2'                  => '',
+			'customer_id'                => $customer_id,
+			'addresses'                  => $addresses,
+			'order_data'                 => $data,
+			'custom_fields'              => $data['custom_fields'],
+			'payment_address_type'       => $addresses ? 'existing' : 'new',
+			'shipping_address_type'      => $addresses ? 'existing' : 'new',
+			'shipping_methods'           => $this->session->data['shipping_methods'],
+			'payment_methods'            => $this->session->data['payment_methods'],
+			'countries'                  => $this->getCountries(),
+			'shipping_zones'             => $this->getZones($data['shipping_country_id']),
+			'payment_zones'              => $this->getZones($data['payment_country_id']),
+			'products'                   => $this->products(),
+			'vouchers'                   => $this->vouchers(),
+			'totals'                     => $this->totals($data['totals']),
+			'total'                      => sprintf($this->language->get('text_items'), $total_items, $this->journal3->currencyFormat($data['total'])),
+			'total_items'                => $total_items,
+			'coupon_status'              => $this->config->get($this->journal3->isOC2() ? 'coupon_status' : 'total_coupon_status'),
+			'coupon'                     => Arr::get($this->session->data, 'coupon'),
+			'voucher_status'             => $this->config->get($this->journal3->isOC2() ? 'voucher_status' : 'total_voucher_status'),
+			'voucher'                    => Arr::get($this->session->data, 'voucher'),
+			'reward_status'              => $this->config->get($this->journal3->isOC2() ? 'reward_status' : 'total_reward_status'),
+			'reward'                     => Arr::get($this->session->data, 'reward'),
+			'newsletter'                 => $this->session->data['newsletter'],
+			'agree'                      => false,
+			'privacy'                    => false,
+			'session'                    => $this->journal3->isDev() ? $this->session->data : null,
+			'error'                      => null,
+			'cart'                       => $this->load->controller('common/cart'),
 			'quickCheckoutPaymentsPopup' => array_map('trim', explode(',', $this->journal3->settings->get('quickCheckoutPaymentsPopup'))),
+			'coupon_message'             => null,
+			'voucher_message'            => null,
+			'reward_message'             => null,
 		);
 	}
 
