@@ -83,18 +83,15 @@ class ControllerJournal3Products extends ModuleController {
 					break;
 
 				case 'most_viewed':
-					$results = $this->model_journal3_product->getMostViewedProducts($limit);
-					$products = $this->parseProducts($results);
+					$products = $this->model_journal3_product->getMostViewedProducts($limit);
 					break;
 
 				case 'custom':
-					$results = $this->model_journal3_product->getProduct(array_filter(Arr::get($filter_data, 'products')));
-					$products = $this->parseProducts($results);
+					$products = $this->model_journal3_product->getProduct(array_filter(Arr::get($filter_data, 'products')));
 					break;
 
 				default:
-					$results = $this->model_journal3_product->getProducts($filter_data);
-					$products = $this->parseProducts($results);
+					$products = $this->model_journal3_product->getProducts($filter_data);
 			}
 		}
 
@@ -240,6 +237,8 @@ class ControllerJournal3Products extends ModuleController {
 				}
 
 				$products = $this->parseProducts($results);
+			} else {
+				$products = $this->parseProducts($products);
 			}
 
 			if (!$products && !($this->settings['sectionsDisplay'] === 'tabs' && $item['tabType'] === 'link')) {

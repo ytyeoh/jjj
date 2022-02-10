@@ -1,7 +1,8 @@
 {
   "name": {
     "type": "Input",
-    "value": "Field"
+    "value": "Field",
+    "php": true
   },
   "status": {
     "type": "Status"

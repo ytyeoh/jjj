@@ -128,6 +128,7 @@
               {% for product in products %}
                 {% set classes = j3.classes({
                   'has-zero-price': not product.price_value,
+                  'out-of-stock': product_quantity <= 0
                 }) %}
                 <td class="{{ j3.classes(product.classes) }} {{ classes }}">
                   <div class="compare-buttons">

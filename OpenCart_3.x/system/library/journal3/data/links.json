@@ -9,6 +9,8 @@
   "checkout/checkout": "Checkout",
   "information/contact": "Contact",
   "information/sitemap": "Sitemap",
+  "affiliate/login": "Affiliate Login",
+  "affiliate/register": "Affiliate Register",
   "affiliate/account": "Affiliates",
   "account/login": "Login",
   "account/logout": "Logout",

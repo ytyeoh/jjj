@@ -66,6 +66,9 @@ $(function () {
 			});
 		},
 		methods: {
+			forceLoadingOverlay: function () {
+				loader('.quick-checkout-wrapper', true);
+			},
 			saveDateTime: function (path, key, event) {
 				this.order_data[path][key] = event.target.value;
 			},
@@ -94,6 +97,7 @@ $(function () {
 
 				// don't load payments defined in admin as popup loadable
 				if (this.quickCheckoutPaymentsPopup && this.quickCheckoutPaymentsPopup.includes(this.order_data.payment_code)) {
+					loader('.quick-checkout-wrapper', false);
 					$('#quick-checkout-button-confirm, #button-login').button('reset');
 					$('.quick-checkout-payment').html('');
 					return;
@@ -121,6 +125,7 @@ $(function () {
 						window['_QuickCheckoutAjaxPayment'] = null;
 
 						$('#quick-checkout-button-confirm, #button-login').button('reset');
+						loader('.quick-checkout-wrapper', false);
 					}
 				})
 			},
@@ -181,6 +186,10 @@ $(function () {
 						$('.popup-checkout-payment').addClass('popup-checkout-loaded');
 
 						window['_QuickCheckoutAjaxPaymentIframe'] = null;
+
+						setTimeout(function () {
+							$('#quick-checkout-button-confirm, #button-login').button('reset');
+						}, 100);
 					}
 				});
 			},
@@ -198,6 +207,7 @@ $(function () {
 				this.ajax({
 					url: 'index.php?route=journal3/checkout/cart_update',
 					data: {
+						checkout_id: this.checkout_id,
 						key: product.cart_id,
 						quantity: product.quantity,
 						account: this.account,
@@ -225,6 +235,7 @@ $(function () {
 				this.ajax({
 					url: 'index.php?route=journal3/checkout/cart_delete',
 					data: {
+						checkout_id: this.checkout_id,
 						key: product.cart_id,
 						account: this.account,
 						order_data: this.order_data,
@@ -246,32 +257,13 @@ $(function () {
 				});
 			},
 			applyCoupon: function () {
+				this.save();
 			},
-			deleteVoucher: function (voucher) {
-				var self = this;
-
-				this.ajax({
-					url: 'index.php?route=journal3/checkout/cart_delete',
-					data: {
-						key: voucher.key,
-						account: this.account,
-						order_data: this.order_data,
-						password: this.password,
-						password2: this.password2,
-						same_address: this.same_address,
-						newsletter: this.newsletter,
-						privacy: this.privacy,
-						agree: this.agree,
-						payment_address_type: this.payment_address_type,
-						shipping_address_type: this.shipping_address_type,
-						coupon: this.coupon,
-						voucher: this.voucher,
-						reward: this.reward
-					},
-					success: function (json) {
-						self.update(json);
-					}
-				});
+			applyVoucher: function () {
+				this.save();
+			},
+			applyReward: function () {
+				this.save();
 			},
 			changeAddressType: function (type, value) {
 				if (value === 'new') {
@@ -291,24 +283,30 @@ $(function () {
 					loader('.quick-checkout-wrapper', true);
 				}
 
+				var data = JSON.parse(JSON.stringify({
+					checkout_id: this.checkout_id,
+					account: this.account,
+					order_data: this.order_data,
+					password: this.password,
+					password2: this.password2,
+					same_address: this.same_address,
+					newsletter: this.newsletter,
+					privacy: this.privacy,
+					agree: this.agree,
+					payment_address_type: this.payment_address_type,
+					shipping_address_type: this.shipping_address_type,
+					coupon: this.coupon,
+					voucher: this.voucher,
+					reward: this.reward
+				}));
+
+				data['order_data']['comment'] = $('.section-comments textarea').val();
+				data['captcha'] = $('[name="captcha"]').val();
+				data['g-recaptcha-response'] = $('[name="g-recaptcha-response"]').val();
+
 				window['_QuickCheckoutAjaxSave'] = this.ajax({
 					url: 'index.php?route=journal3/checkout/save' + (confirm ? '&confirm=true' : ''),
-					data: {
-						checkout_id: this.checkout_id,
-						account: this.account,
-						order_data: this.order_data,
-						password: this.password,
-						password2: this.password2,
-						same_address: this.same_address,
-						newsletter: this.newsletter,
-						privacy: this.privacy,
-						agree: this.agree,
-						payment_address_type: this.payment_address_type,
-						shipping_address_type: this.shipping_address_type,
-						coupon: this.coupon,
-						voucher: this.voucher,
-						reward: this.reward
-					},
+					data: data,
 					success: function (json) {
 						window['_QuickCheckoutAjaxSave'] = null;
 						this.update(json, confirm);
@@ -337,6 +335,9 @@ $(function () {
 					this.$data.total = json.response.total;
 					this.session = json.response.session;
 					this.error = json.response.error;
+					this.coupon_message = json.response.coupon_message;
+					this.voucher_message = json.response.voucher_message;
+					this.reward_message = json.response.reward_message;
 
 					$('#cart-total').html(json.response.total);
 					$('.cart-content > ul').html($(json.response.cart).find('.cart-content > ul').html());
@@ -366,7 +367,7 @@ $(function () {
 
 						setTimeout(function () {
 							try {
-								$('html, body').animate({ scrollTop: $('.form-group .text-danger').closest('.form-group').offset().top - 50 }, 'slow');
+								$('html, body').animate({ scrollTop: $('.left .form-group .text-danger').closest('.form-group').offset().top - 50 }, 'slow');
 							} catch (e) {
 							}
 						}, 300);
@@ -500,4 +501,5 @@ function triggerLoadingOn() {
 
 function triggerLoadingOff() {
 	$('#quick-checkout-button-confirm, #button-login').button('reset');
+	loader('.quick-checkout-wrapper', false);
 }

@@ -131,8 +131,6 @@ class ControllerJournal3ProductTabs extends ModuleController {
 				static::$PRODUCT_INFO['description'] = '';
 			}
 
-			static::$PRODUCT_INFO['short_description'] = utf8_substr(strip_tags(html_entity_decode(static::$PRODUCT_INFO['description'], ENT_QUOTES, 'UTF-8')), 0, (int)$short_description_limit) . '..';
-
 			// attrs
 			$data['attribute_groups'] = $this->model_catalog_product->getProductAttributes($this->request->get['product_id']);
 			static::$PRODUCT_INFO['attributes'] = $this->renderView('journal3/module/product_blocks_attributes', $data);
@@ -187,6 +185,8 @@ class ControllerJournal3ProductTabs extends ModuleController {
 
 			static::$PRODUCT_INFO['reviews'] = $this->renderView('journal3/module/product_blocks_reviews', $data);
 		}
+
+		static::$PRODUCT_INFO['short_description'] = utf8_substr(strip_tags(html_entity_decode(static::$PRODUCT_INFO['description'], ENT_QUOTES, 'UTF-8')), 0, (int)$short_description_limit) . '..';
 
 		return static::$PRODUCT_INFO[$type];
 	}

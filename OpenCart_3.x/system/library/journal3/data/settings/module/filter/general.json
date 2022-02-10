@@ -38,6 +38,26 @@
     "value": "false",
     "php": true
   },
+  "options": {
+    "type": "Toggle",
+    "value": "true",
+    "php": true
+  },
+  "attributes": {
+    "type": "Toggle",
+    "value": "true",
+    "php": true
+  },
+  "filters": {
+    "type": "Toggle",
+    "value": "true",
+    "php": true
+  },
+  "filtersCategoryCheck": {
+    "type": "Toggle",
+    "value": "false",
+    "php": true
+  },
   "resetButtonStyle": {
     "type": "Variable",
     "variable": "button",

@@ -46,6 +46,18 @@
       }
     }
   },
+  "contentStatus": {
+    "type": "Toggle",
+    "value": "",
+    "rules": {
+      "true": {
+        ".layout-%s .site-wrapper > .container": "display: block !important"
+      },
+      "false": {
+        ".layout-%s .site-wrapper > .container": "display: none !important"
+      }
+    }
+  },
   "titleStatus": {
     "type": "Toggle",
     "value": "",

@@ -57,12 +57,15 @@
         <span class="text-danger" v-if="error && error.{{ type }}_city" v-html="error.{{ type }}_city"></span>
       </div>
 
+      {% if j3.settings.get('quickCheckoutAddressPostcodeField') != 'hidden' %}
       <div class="form-group required address-postcode">
         <label class="control-label" for="input-{{ type }}-postcode">{{ entry_postcode }}</label>
         <input v-model="order_data.{{ type }}_postcode" type="text" name="postcode" value="" placeholder="{{ entry_postcode }}" id="input-{{ type }}-postcode" class="form-control"/>
         <span class="text-danger" v-if="error && error.{{ type }}_postcode" v-html="error.{{ type }}_postcode"></span>
       </div>
+      {% endif %}
 
+      {% if j3.settings.get('quickCheckoutAddressCountryField') != 'hidden' %}
       <div class="form-group required address-country">
         <label class="control-label" for="input-{{ type }}-country">{{ entry_country }}</label>
         <select v-model="order_data.{{ type }}_country_id" name="country_id" id="input-{{ type }}-country" class="form-control">
@@ -71,7 +74,9 @@
         </select>
         <span class="text-danger" v-if="error && error.{{ type }}_country" v-html="error.{{ type }}_country"></span>
       </div>
+      {% endif %}
 
+      {% if j3.settings.get('quickCheckoutAddressRegionField') != 'hidden' %}
       <div class="form-group required address-zone">
         <label class="control-label" for="input-{{ type }}-zone">{{ entry_zone }}</label>
         <select v-model="order_data.{{ type }}_zone_id" name="zone_id" id="input-{{ type }}-zone" class="form-control">
@@ -81,6 +86,7 @@
         </select>
         <span class="text-danger" v-if="error && error.{{ type }}_zone" v-html="error.{{ type }}_zone"></span>
       </div>
+      {% endif %}
 
       {# custom fields - select #}
 
@@ -111,13 +117,13 @@
 
       <div v-for="custom_field in custom_fields.custom_fields.address" v-if="custom_field.type === 'checkbox'" v-bind:id="'{{ type }}-custom-field' + custom_field.custom_field_id" v-bind:class="'form-group custom-field' + (custom_field.required ? ' required' : '')">
         <label class="control-label" v-html="custom_field.name"></label>
-        <div v-bind:id="'input-{{ type }}-custom-field' + custom_field.custom_field_id"> {% for custom_field_value in custom_field.custom_field_value %}
-            <div class="checkbox">
-              <label>
-                <input type="checkbox" name="custom_field[{{ custom_field.location }}][{{ custom_field.custom_field_id }}][]" value="{{ custom_field_value.custom_field_value_id }}"/>
-                {{ custom_field_value.name }}</label>
-            </div>
-          {% endfor %} </div>
+        <div v-bind:id="'input-{{ type }}-custom-field' + custom_field.custom_field_id">
+          <div class="checkbox" v-for="custom_field_value in custom_field.custom_field_value">
+            <label>
+              <input type="checkbox" v-model="order_data.{{ type }}_custom_field[custom_field.custom_field_id]" v-bind:value="custom_field_value.custom_field_value_id"/>
+              <span v-html="custom_field_value.name"></span></label>
+          </div>
+        </div>
         <span class="text-danger" v-if="error && error.{{ type }}_custom_field && error.{{ type }}_custom_field[custom_field.custom_field_id]" v-html="error.{{ type }}_custom_field[custom_field.custom_field_id]"></span>
       </div>
 

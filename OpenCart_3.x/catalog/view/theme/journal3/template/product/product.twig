@@ -57,7 +57,7 @@
                   {% for image in images %}
                     {% set gallery = gallery|merge([{src: image.popup, thumb: image.galleryThumb, subHtml: heading_title}]) %}
                     <div class="swiper-slide" {% if not j3.document.isPopup() and j3.settings.get(stylePrefix ~ 'GalleryStatus') %} data-gallery=".lightgallery-product-images" data-index="{{ loop.index0 }}" {% endif %}>
-                      <img src="{{ image.image }}" {% if image.image2x %}srcset="{{ image.image }} 1x, {{ image.image2x }} 2x"{% endif %} data-largeimg="{{ image.popup }}" alt="{{ heading_title }}" title="{{ heading_title }}" width="{{ j3.settings.get('image_dimensions_thumb.width') }}" height="{{ j3.settings.get('image_dimensions_thumb.height') }}"/>
+                      <img src="{{ image.image }}" {% if image.image2x %}srcset="{{ image.image }} 1x, {{ image.image2x }} 2x"{% endif %} data-largeimg="{{ image.popup }}" alt="{{ heading_title }}" title="{{ heading_title }}" width="{{ j3.settings.get('image_dimensions_thumb.width') }}" height="{{ j3.settings.get('image_dimensions_thumb.height') }}" {% if not loop.first %}loading="lazy"{% endif %}/>
                     </div>
                   {% endfor %}
                 </div>
@@ -84,7 +84,7 @@
                     <div class="swiper-wrapper">
                       {% for image in images %}
                         <div class="swiper-slide additional-image" data-index="{{ loop.index0 }}">
-                          <img src="{{ image.thumb }}" {% if image.thumb2x %}srcset="{{ image.thumb }} 1x, {{ image.thumb2x }} 2x"{% endif %} alt="{{ heading_title }}" title="{{ heading_title }}"/>
+                          <img src="{{ image.thumb }}" {% if image.thumb2x %}srcset="{{ image.thumb }} 1x, {{ image.thumb2x }} 2x"{% endif %} alt="{{ heading_title }}" title="{{ heading_title }}" width="{{ j3.settings.get('image_dimensions_additional.width') }}" height="{{ j3.settings.get('image_dimensions_additional.height') }}" {% if not loop.first %}loading="lazy"{% endif %}/>
                         </div>
                       {% endfor %}
                     </div>
@@ -99,7 +99,7 @@
                 <div class="additional-images">
                   {% for image in images %}
                     <div class="additional-image" data-index="{{ loop.index0 }}">
-                      <img src="{{ image.thumb }}" alt="{{ heading_title }}" title="{{ heading_title }}"/>
+                      <img src="{{ image.thumb }}" alt="{{ heading_title }}" title="{{ heading_title }}" width="{{ j3.settings.get('image_dimensions_additional.width') }}" height="{{ j3.settings.get('image_dimensions_additional.height') }}"/>
                     </div>
                   {% endfor %}
                 </div>
@@ -210,7 +210,7 @@
                 <div class="brand-image product-manufacturer">
                   <a href="{{ manufacturers }}">
                     {% if manufacturer_image %}
-                      <img src="{{ manufacturer_image }}" {% if manufacturer_image2x %}srcset="{{ manufacturer_image }} 1x, {{ manufacturer_image2x }} 2x"{% endif %} alt="{{ manufacturer }}"/>
+                      <img src="{{ manufacturer_image }}" {% if manufacturer_image2x %}srcset="{{ manufacturer_image }} 1x, {{ manufacturer_image2x }} 2x"{% endif %} alt="{{ manufacturer }}" width="{{ j3.settings.get('image_dimensions_manufacturer_logo.width') }}" height="{{ j3.settings.get('image_dimensions_manufacturer_logo.height') }}"/>
                     {% endif %}
                     <span>{{ manufacturer }}</span>
                   </a>
@@ -339,7 +339,7 @@
                   <div class="brand-image product-manufacturer">
                     <a href="{{ manufacturers }}">
                       {% if manufacturer_image %}
-                        <img src="{{ manufacturer_image }}" {% if manufacturer_image2x %}srcset="{{ manufacturer_image }} 1x, {{ manufacturer_image2x }} 2x"{% endif %} alt="{{ manufacturer }}"/>
+                        <img src="{{ manufacturer_image }}" {% if manufacturer_image2x %}srcset="{{ manufacturer_image }} 1x, {{ manufacturer_image2x }} 2x"{% endif %} alt="{{ manufacturer }}" width="{{ j3.settings.get('image_dimensions_manufacturer_logo.width') }}" height="{{ j3.settings.get('image_dimensions_manufacturer_logo.height') }}"/>
                       {% endif %}
                       <span>{{ manufacturer }}</span>
                     </a>
@@ -385,7 +385,7 @@
                 <div class="radio">
                   <label>
                     <input type="radio" name="option[{{ option.product_option_id }}]" value="{{ option_value.product_option_value_id }}" />
-                    {% if option_value.image %} <img src="{{ option_value.image }}" alt="{{ option_value.name }} {% if option_value.price and optionPrice %} {{ option_value.price_prefix }} {{ option_value.price }} {% endif %}" data-toggle="tooltip" data-tooltip-class="push-tooltip" data-placement="{{ j3.settings.get(stylePrefix ~ 'PushTooltipPosition') }}" title="{{ option_value.name }} {% if option_value.price and optionPrice %} ({{ option_value.price_prefix }}{{ option_value.price }}) {% endif %}"/> {% endif %}
+                    {% if option_value.image %} <img width="{{ j3.settings.get('image_dimensions_options.width') }}" height="{{ j3.settings.get('image_dimensions_options.height') }}" src="{{ option_value.image }}" alt="{{ option_value.name }} {% if option_value.price and optionPrice %} {{ option_value.price_prefix }} {{ option_value.price }} {% endif %}" data-toggle="tooltip" data-tooltip-class="push-tooltip" data-placement="{{ j3.settings.get(stylePrefix ~ 'PushTooltipPosition') }}" title="{{ option_value.name }} {% if option_value.price and optionPrice %} ({{ option_value.price_prefix }}{{ option_value.price }}) {% endif %}"/> {% endif %}
                     <span class="option-value">
                       {{ option_value.name }}
                       {% if option_value.price and optionPrice %}
@@ -406,7 +406,7 @@
                 <div class="checkbox">
                   <label>
                     <input type="checkbox" name="option[{{ option.product_option_id }}][]" value="{{ option_value.product_option_value_id }}" />
-                    {% if option_value.image %} <img src="{{ option_value.image }}" alt="{{ option_value.name }} {% if option_value.price and optionPrice %} {{ option_value.price_prefix }} {{ option_value.price }} {% endif %}" data-toggle="tooltip" data-tooltip-class="push-tooltip" data-placement="{{ j3.settings.get(stylePrefix ~ 'PushTooltipPosition') }}" title="{{ option_value.name }} {% if option_value.price and optionPrice %} ({{ option_value.price_prefix }}{{ option_value.price }}) {% endif %}"/> {% endif %}
+                    {% if option_value.image %} <img width="{{ j3.settings.get('image_dimensions_options.width') }}" height="{{ j3.settings.get('image_dimensions_options.height') }}" src="{{ option_value.image }}" alt="{{ option_value.name }} {% if option_value.price and optionPrice %} {{ option_value.price_prefix }} {{ option_value.price }} {% endif %}" data-toggle="tooltip" data-tooltip-class="push-tooltip" data-placement="{{ j3.settings.get(stylePrefix ~ 'PushTooltipPosition') }}" title="{{ option_value.name }} {% if option_value.price and optionPrice %} ({{ option_value.price_prefix }}{{ option_value.price }}) {% endif %}"/> {% endif %}
                     <span class="option-value">
                       {{ option_value.name }}
                       {% if option_value.price and optionPrice %}
@@ -491,7 +491,7 @@
                 {% if j3.settings.get('catalogCartStatus') %}
                 <div class="stepper">
                   <label class="control-label" for="product-quantity">{{ entry_qty }}</label>
-                  <input id="product-quantity" type="text" name="quantity" value="{{ minimum }}" data-minimum="{{ minimum }}" class="form-control"/>
+                  <input id="product-quantity" type="text" name="quantity" value="{{ journal3_product_quantity > 0 ? journal3_product_quantity : minimum }}" data-minimum="{{ minimum }}" class="form-control"/>
                   <input id="product-id" type="hidden" name="product_id" value="{{ product_id }}" />
                   <span>
                   <i class="fa fa-angle-up"></i>
@@ -653,7 +653,7 @@ $('#button-cart, [data-quick-buy]').on('click', function () {
         $('.text-danger').parent().addClass('has-error');
 
         try {
-          $('html, body').animate({ scrollTop: $('.form-group.has-error').offset().top - 50 }, 'slow');
+          $('html, body').animate({ scrollTop: $('.form-group.has-error').offset().top - $('header').height() - 20 }, 'slow');
         } catch (e) {
         }
       }
@@ -666,16 +666,16 @@ $('#button-cart, [data-quick-buy]').on('click', function () {
         if (json['notification']) {
           parent.show_notification(json['notification']);
         } else {
-          parent.$('#content').parent().before('<div class="alert alert-success"><i class="fa fa-check-circle"></i> ' + json['success'] + ' <button type="button" class="close" data-dismiss="alert">&times;</button></div>');
+          parent.$('#content').parent().before('<div class="alert alert-success alert-dismissible"><i class="fa fa-check-circle"></i> ' + json['success'] + ' <button type="button" class="close" data-dismiss="alert">&times;</button></div>');
         }
 
         parent.$('#cart-total').html(json['total']);
-        parent.$('#cart-items').html(json['items_count']);
+        parent.$('#cart-items,.cart-badge').html(json['items_count']);
 
         if (json['items_count']) {
-          parent.$('#cart-items').removeClass('count-zero');
+          parent.$('#cart-items,.cart-badge').removeClass('count-zero');
         } else {
-          parent.$('#cart-items').addClass('count-zero');
+          parent.$('#cart-items,.cart-badge').addClass('count-zero');
         }
 
         if (Journal['scrollToTop']) {
@@ -838,9 +838,10 @@ $(document).ready(function () {
       $('a[href="#' + $review.closest('.module-item').attr('id') + '"]').trigger('click');
       $('a[href="#' + $review.closest('.tab-pane').attr('id') + '"]').trigger('click');
       $('a[href="#' + $review.closest('.panel-collapse').attr('id') + '"]').trigger('click');
+      $review.closest('.expand-block').find('.block-expand.btn').trigger('click');
 
       $([document.documentElement, document.body]).animate({
-        scrollTop: $review.offset().top - 100
+        scrollTop: $review.offset().top - $('header').height() - 20
       }, 200);
     }
   });

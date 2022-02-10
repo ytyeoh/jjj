@@ -38,8 +38,6 @@ class Controller extends \Controller implements Autocomplete {
 			exit;
 		}
 
-		$this->load->language('journal3/journal3');
-
 		$data = json_decode(file_get_contents('php://input'), true);
 
 		if (is_array($data)) {

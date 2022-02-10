@@ -69,7 +69,7 @@ function journal_filter(url, opts) {
 	var source = opts.source;
 	var updateHistory = opts.updateHistory;
 
-	if (window['URL']) {
+	try {
 		var u = new URL(url);
 
 		u.host = window.location.host;
@@ -77,6 +77,7 @@ function journal_filter(url, opts) {
 		u.protocol = window.location.protocol;
 
 		url = u.toString();
+	} catch (e) {
 	}
 
 	if (updateHistory !== false && window.history && window.history.pushState) {

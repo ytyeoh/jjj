@@ -1,6 +1,7 @@
 {% for category in categories %}
   <div class="category-layout {{ j3.classes(category.classes) }}">
     <div class="category-thumb">
+      {% if images %}
       <div class="image">
         <a href="{{ category.href }}">
           {% if j3.settings.get('performanceLazyLoadImagesStatus') %}
@@ -10,6 +11,7 @@
           {% endif %}
         </a>
       </div>
+      {% endif %}
 
       <div class="caption">
         <div class="name"><a href="{{ category.href }}">{{ category.name }}</a></div>

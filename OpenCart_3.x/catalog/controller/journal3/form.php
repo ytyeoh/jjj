@@ -28,7 +28,7 @@ class ControllerJournal3Form extends ModuleController {
 					$this->document->addStyle('catalog/view/javascript/jquery/datetimepicker/bootstrap-datetimepicker.min.css');
 				} else {
 					$this->document->addScript('catalog/view/javascript/jquery/datetimepicker/moment/moment.min.js');
-//					$this->document->addScript('catalog/view/javascript/jquery/datetimepicker/moment/moment-with-locales.min.js');
+					$this->document->addScript('catalog/view/javascript/jquery/datetimepicker/moment/moment-with-locales.min.js');
 					$this->document->addScript('catalog/view/javascript/jquery/datetimepicker/bootstrap-datetimepicker.min.js');
 					$this->document->addStyle('catalog/view/javascript/jquery/datetimepicker/bootstrap-datetimepicker.min.css');
 				}
@@ -129,7 +129,7 @@ class ControllerJournal3Form extends ModuleController {
 		try {
 			if (!Request::isAjax()) {
 				$this->renderJson(self::SUCCESS, array(
-					'message' => 'Success!'
+					'message' => 'Success!',
 				));
 
 				return;
@@ -174,8 +174,10 @@ class ControllerJournal3Form extends ModuleController {
 			foreach ($this->settings['items'] as $index => $item) {
 				$value = Arr::get($this->request->post, 'item.' . $index);
 
-				if ($item['required'] && empty($value)) {
-					$errors['item[' . $index . ']'] = sprintf($this->language->get('error_custom_field'), $item['label']);
+				if ($item['type'] !== 'legend') {
+					if ($item['required'] && empty($value)) {
+						$errors['item[' . $index . ']'] = sprintf($this->language->get('error_custom_field'), $item['label']);
+					}
 				}
 
 				if ($item['type'] === 'name') {
@@ -241,7 +243,7 @@ class ControllerJournal3Form extends ModuleController {
 
 				$email_data = array(
 					'title'      => $this->config->get('config_name'),
-					'logo'       => $this->config->get('config_logo') ? $this->model_journal3_image->resize($this->config->get('config_logo')) : false,
+					'logo'       => $this->settings['sentEmailLogo'] && $this->config->get('config_logo') ? $this->model_journal3_image->resize($this->config->get('config_logo')) : false,
 					'store_name' => $this->config->get('config_name'),
 					'store_url'  => $this->config->get(Request::isHttps() ? 'config_ssl' : 'config_url'),
 					'data'       => $data,
@@ -267,7 +269,7 @@ class ControllerJournal3Form extends ModuleController {
 				}
 
 				$params = array(
-					'to'      => $this->config->get('config_email'),
+					'to'      => $this->settings['sentEmailTo'] ? $this->settings['sentEmailTo'] : $this->config->get('config_email'),
 					'subject' => str_replace($replace_keys, $replace_values, $this->settings['sentEmailSubject']),
 					'message' => $this->load->view('journal3/module/form_email', $email_data),
 				);

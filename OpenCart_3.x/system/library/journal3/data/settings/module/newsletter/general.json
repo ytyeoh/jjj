@@ -324,6 +324,11 @@
     "value": "We're sorry to see you go.",
     "php": true
   },
+  "emailLogo": {
+    "type": "Toggle",
+    "php": true,
+    "value": "false"
+  },
   "adminAlerts": {
     "type": "Toggle",
     "php": true

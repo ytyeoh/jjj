@@ -73,17 +73,17 @@ class ModelJournal3Image extends Model {
 			return trim(file_get_contents(DIR_IMAGE . $filename));
 		}
 
+		// svg image
+		if (Str::endsWith($filename, '.svg')) {
+			return $this->model_tool_image->resize($filename, $width, $height, $resize_type);
+		}
+
+		// external image
+		if (Str::startsWith($filename, 'http://') || Str::startsWith($filename, 'https://')) {
+			return $filename;
+		}
+
 		if (!$filename || !is_file(DIR_IMAGE . $filename)) {
-			// external image
-			if (Str::startsWith($filename, 'http://') || Str::startsWith($filename, 'https://')) {
-				return $filename;
-			}
-
-			// svg image
-			if (Str::endsWith($filename, '.svg')) {
-				return $this->model_tool_image->resize($filename, $width, $height, $resize_type);
-			}
-
 			$filename = 'placeholder.png';
 		}
 

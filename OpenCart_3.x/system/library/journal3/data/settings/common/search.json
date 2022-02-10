@@ -225,6 +225,11 @@
     "php": true,
     "js": true
   },
+  "SearchAutoSuggestSubCategories": {
+    "type": "Toggle",
+    "js": true,
+    "php": true
+  },
   "SearchAutoSuggestWidth": {
     "type": "InputNumber",
     "selector": ".tt-menu > div",

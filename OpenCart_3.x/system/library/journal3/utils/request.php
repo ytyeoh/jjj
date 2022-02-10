@@ -33,7 +33,7 @@ class Request {
 	}
 
 	public static function matches($ignored_routes) {
-		$route = Arr::get($_GET, 'route');
+		$route = Arr::get($_GET, 'route', Arr::get($_GET, '_route_'));
 
 		if (!$route) {
 			return false;

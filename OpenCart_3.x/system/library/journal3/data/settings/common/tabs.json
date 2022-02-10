@@ -253,10 +253,18 @@
     "value": "",
     "rules": {
       "group": {
-        ".nav-tabs > li:last-child": "margin-left:0"
+        ".nav-tabs > li:last-child": "margin-left:0;"
       },
       "end": {
-        ".nav-tabs > li:last-child": "margin-left:auto"
+        ".nav-tabs > li:last-child": "margin-left:auto;"
+      }
+    },
+    "rtlRules": {
+      "group": {
+        ".nav-tabs > li:last-child": "margin-right:0;"
+      },
+      "end": {
+        ".nav-tabs > li:last-child": "margin-right: auto"
       }
     }
   },

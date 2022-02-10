@@ -342,43 +342,47 @@ class ControllerJournal3Layout extends Controller {
 			if ($desktop_module_id && $desktop_module_type) {
 				$settings = $this->model_journal3_module->get($desktop_module_id, $desktop_module_type);
 
-				$files = glob(DIR_SYSTEM . 'library/journal3/data/settings/module/header_desktop/{*,*/*}.json', GLOB_BRACE);
+				if ($settings) {
+					$files = glob(DIR_SYSTEM . 'library/journal3/data/settings/module/header_desktop/{*,*/*}.json', GLOB_BRACE);
 
-				foreach ($files as &$file) {
-					$file = str_replace(DIR_SYSTEM . 'library/journal3/data/settings/', '', $file);
-					$file = str_replace('.json', '', $file);
+					foreach ($files as &$file) {
+						$file = str_replace(DIR_SYSTEM . 'library/journal3/data/settings/', '', $file);
+						$file = str_replace('.json', '', $file);
+					}
+
+					$parser = new Parser($files, $settings['general']);
+
+					$cache['php']['headerType'] = str_replace('header_desktop_', '', $desktop_module_type);
+					$cache['php'] += $parser->getPhp();
+					$cache['js'] += $parser->getJs();
+					$cache['js']['headerType'] = $cache['php']['headerType'];
+					$fonts = $parser->getFonts();
+					$cache['fonts'] = Arr::merge($cache['fonts'], $fonts);
+					$cache['css'] .= $parser->getCss();
 				}
-
-				$parser = new Parser($files, $settings['general']);
-
-				$cache['php']['headerType'] = str_replace('header_desktop_', '', $desktop_module_type);
-				$cache['php'] += $parser->getPhp();
-				$cache['js'] += $parser->getJs();
-				$cache['js']['headerType'] = $cache['php']['headerType'];
-				$fonts = $parser->getFonts();
-				$cache['fonts'] = Arr::merge($cache['fonts'], $fonts);
-				$cache['css'] .= $parser->getCss();
 
 			}
 
 			if ($mobile_module_id && $mobile_module_type) {
 				$settings = $this->model_journal3_module->get($mobile_module_id, $mobile_module_type);
 
-				$files = glob(DIR_SYSTEM . 'library/journal3/data/settings/module/header_mobile/{*,*/*}.json', GLOB_BRACE);
+				if ($settings) {
+					$files = glob(DIR_SYSTEM . 'library/journal3/data/settings/module/header_mobile/{*,*/*}.json', GLOB_BRACE);
 
-				foreach ($files as &$file) {
-					$file = str_replace(DIR_SYSTEM . 'library/journal3/data/settings/', '', $file);
-					$file = str_replace('.json', '', $file);
+					foreach ($files as &$file) {
+						$file = str_replace(DIR_SYSTEM . 'library/journal3/data/settings/', '', $file);
+						$file = str_replace('.json', '', $file);
+					}
+
+					$parser = new Parser($files, $settings['general']);
+
+					$cache['php']['mobileHeaderType'] = str_replace('header_mobile_', '', $mobile_module_type);
+					$cache['php'] += $parser->getPhp();
+					$cache['js'] += $parser->getJs();
+					$fonts = $parser->getFonts();
+					$cache['fonts'] = Arr::merge($cache['fonts'], $fonts);
+					$cache['css'] .= $parser->getCss();
 				}
-
-				$parser = new Parser($files, $settings['general']);
-
-				$cache['php']['mobileHeaderType'] = str_replace('header_mobile_', '', $mobile_module_type);
-				$cache['php'] += $parser->getPhp();
-				$cache['js'] += $parser->getJs();
-				$fonts = $parser->getFonts();
-				$cache['fonts'] = Arr::merge($cache['fonts'], $fonts);
-				$cache['css'] .= $parser->getCss();
 			}
 
 			$this->_cache = $cache;

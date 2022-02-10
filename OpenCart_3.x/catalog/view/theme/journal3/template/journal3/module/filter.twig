@@ -73,7 +73,8 @@
                         {% if subitem.image %}
                           <img src="{{ subitem.image }}" {% if subitem.image2x %} srcset="{{ subitem.image }} 1x, {{ subitem.image2x }} 2x" {% endif %} width="{{ image_width }}" height="{{ image_height }}" alt="{{ subitem.value }}" title="{{ subitem.value }}" class="img-responsive" {% if item.image_only %}data-toggle="tooltip" data-tooltip-class="filter-tooltip-{{ module_id }}" data-placement="top"{% endif %}/>
                         {% endif %}
-                        {{ j3.countBadge(subitem.value, subitem.total) }}
+                        <span class="links-text">{{ subitem.value }}</span>
+                        <span class="count-badge">{{ subitem.total }}</span>
                       </label>
                   {% endfor %}
                 </div>

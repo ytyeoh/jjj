@@ -9,6 +9,7 @@ class ControllerJournal3Journal3 extends Controller {
 		parent::__construct($registry);
 
 		$this->load->model('journal3/journal3');
+		$this->load->model('journal3/setting');
 		$this->load->model('journal3/module');
 
 		$this->load->language('error/permission');
@@ -42,6 +43,9 @@ class ControllerJournal3Journal3 extends Controller {
 		} else {
 			$this->document->addStyle('view/javascript/summernote/summernote.css');
 			$this->document->addScript('view/javascript/summernote/summernote.js');
+			if ($this->journal3->isOC3()) {
+				$this->document->addScript('view/javascript/summernote/summernote-image-attributes.js');
+			}
 			$this->document->addScript('view/javascript/summernote/opencart.js');
 		}
 
@@ -51,31 +55,22 @@ class ControllerJournal3Journal3 extends Controller {
 
 
 		// icons
-		if (is_file(DIR_CATALOG . 'view/theme/journal3/icons_custom/style.css')) {
-			$icons = 'icons_custom';
+		if (is_file(DIR_CATALOG . 'view/theme/journal3/icons_custom/selection.json')) {
+			$icons_folder = '../catalog/view/theme/journal3/icons_custom';
 		} else {
-			$icons = 'icons';
+			$icons_folder = '../catalog/view/theme/journal3/icons';
 		}
 
-		$this->document->addStyle('../catalog/view/theme/journal3/' . $icons . '/style.css');
+		$icons_ver = substr(md5_file($icons_folder . '/selection.json'), 0, 10);
 
-		// journal3 assets
+		$this->document->addStyle($icons_folder . '/style.css?ver=' . $icons_ver);
+
+		// journal3
 		$this->document->addScript($this->adminUrl('journal3/journal3/js'));
 
-		if ($this->journal3->isDev()) {
-			$this->document->addScript('//' . parse_url(HTTP_SERVER, PHP_URL_HOST) . ':35729/livereload.js?snipver=1');
-			$this->document->addScript('//' . parse_url(HTTP_SERVER, PHP_URL_HOST) . ':' . (defined('PORT') ? PORT : 4444) . '/vendor.js?t=' . time());
-			$this->document->addScript('//' . parse_url(HTTP_SERVER, PHP_URL_HOST) . ':' . (defined('PORT') ? PORT : 4444) . '/main.js?t=' . time());
-
-			$this->document->addStyle('view/javascript/journal3/dist/vendor.css?t=' . time());
-			$this->document->addStyle('view/javascript/journal3/dist/style.css?t=' . time());
-		} else {
-			$this->document->addScript('view/javascript/journal3/dist/vendor.js?v=' . (defined('JOURNAL3_BUILD') ? JOURNAL3_BUILD : JOURNAL3_VERSION));
-			$this->document->addScript('view/javascript/journal3/dist/main.js?v=' . (defined('JOURNAL3_BUILD') ? JOURNAL3_BUILD : JOURNAL3_VERSION));
-
-			$this->document->addStyle('view/javascript/journal3/dist/vendor.css?v=' . (defined('JOURNAL3_BUILD') ? JOURNAL3_BUILD : JOURNAL3_VERSION));
-			$this->document->addStyle('view/javascript/journal3/dist/style.css?v=' . (defined('JOURNAL3_BUILD') ? JOURNAL3_BUILD : JOURNAL3_VERSION));
-		}
+		// journal3 assets
+		$this->document->addStyle('view/javascript/journal3/dist/journal.css?v=' . ($this->journal3->isDev() ? time() : JOURNAL3_BUILD));
+		$this->document->addScript('view/javascript/journal3/dist/journal.js?v=' . ($this->journal3->isDev() ? time() : JOURNAL3_BUILD));
 
 		// version
 		$data['j3v'] = JOURNAL3_VERSION;
@@ -94,12 +89,12 @@ class ControllerJournal3Journal3 extends Controller {
 
 		$journal = array();
 
-//		// dashboard
-//		$journal[] = array(
-//			'name'     => $this->language->get('Dashboard'),
-//			'href'     => $this->adminUrl('journal3/journal3') . '#/dashboard',
-//			'children' => array(),
-//		);
+		// dashboard
+		$journal[] = [
+			'name'     => $this->language->get('Dashboard'),
+			'href'     => $this->adminUrl('journal3/journal3') . '#/dashboard',
+			'children' => [],
+		];
 
 		// variables
 		if ($this->user->hasPermission('access', 'journal3/variable')) {
@@ -294,11 +289,13 @@ class ControllerJournal3Journal3 extends Controller {
 		$data['php_post_max_size'] = ini_get('post_max_size');
 
 		// version
-		$data['j3v'] =  implode('.', array_slice(explode('.', JOURNAL3_VERSION), 0, 3));
+		$data['j3v'] = implode('.', array_slice(explode('.', JOURNAL3_VERSION), 0, 3));
 		$data['j3ov'] = JOURNAL3_OC_VERSION;
 		$data['ocv'] = VERSION;
+		$data['j3ver'] = JOURNAL3_VERSION . '-' . JOURNAL3_BUILD;
 		$data['j3debug'] = defined('JOURNAL3_DEBUG') && JOURNAL3_DEBUG;
 		$data['j3env'] = defined('JOURNAL3_ENV') ? JOURNAL3_ENV : 'production';
+		$data['j3export'] = JOURNAL3_EXPORT;
 
 		// sentry
 		$data['j3sentry_dsn'] = defined('SENTRY_DSN') ? SENTRY_DSN : '';
@@ -319,13 +316,29 @@ class ControllerJournal3Journal3 extends Controller {
 		}
 
 		// available stores
+		$dashboard = (array)$this->model_journal3_setting->get(0, array('dashboard'));
 		$this->load->model('setting/store');
 		$stores = $this->model_setting_store->getStores();
+		$stores = array_map(function ($store) {
+			$store['domain'] = parse_url($store['ssl'] ?: $store['url'], PHP_URL_HOST);
+			unset($store['url']);
+			unset($store['ssl']);
+
+			return $store;
+		}, $stores);
+
 		array_unshift($stores, array(
-			'store_id' => '0',
-			'name'     => $this->config->get('config_name'),
+			'store_id'       => '0',
+			'name'           => $this->config->get('config_name'),
+			'domain'         => parse_url(HTTPS_CATALOG ?: HTTP_CATALOG, PHP_URL_HOST),
+			'dashboard_user' => $dashboard['dashboard']['dashboard_user_0'] ?? '',
+			'dashboard_key'  => $dashboard['dashboard']['dashboard_key_0'] ?? '',
 		));
+
 		$data['stores'] = $stores;
+
+		// domain id
+		$data['domain_id'] = substr(md5(php_uname('a')), 0, 16);
 
 		// custom fields
 		$this->load->model('customer/custom_field');
@@ -553,6 +566,73 @@ class ControllerJournal3Journal3 extends Controller {
 			$this->renderJson(self::SUCCESS);
 		} catch (Exception $e) {
 			$this->renderJson(self::ERROR, $e->getMessage());
+		}
+	}
+
+	public function get() {
+		$this->load->model('setting/store');
+		$stores = $this->model_setting_store->getStores();
+
+		array_unshift($stores, array(
+			'store_id' => '0',
+			'name'     => $this->config->get('config_name'),
+			'url'      => HTTP_CATALOG,
+			'ssl'      => HTTPS_CATALOG,
+		));
+
+		$data = [];
+
+		$dashboard = (array)$this->model_journal3_setting->get(0, array('dashboard'));
+
+		foreach ($stores as $store) {
+			$domain = parse_url($store['ssl'] ?: $store['url'], PHP_URL_HOST);
+
+			$data['stores'][] = [
+				'store_id'  => $store['store_id'],
+				'name'      => $store['name'],
+				'domain'    => $domain,
+				'dashboard' => [
+					'dashboard_user' => $dashboard['dashboard']['dashboard_user_' . $store['store_id']] ?? '',
+					'dashboard_key'  => $dashboard['dashboard']['dashboard_key_' . $store['store_id']] ?? '',
+				],
+			];
+		}
+
+		$this->renderJson('success', $data);
+	}
+
+	public function edit() {
+		$this->load->model('setting/store');
+		$stores = $this->model_setting_store->getStores();
+
+		array_unshift($stores, array(
+			'store_id' => '0',
+			'name'     => $this->config->get('config_name'),
+			'url'      => HTTP_CATALOG,
+			'ssl'      => HTTPS_CATALOG,
+		));
+
+		try {
+			if (!$this->user->hasPermission('modify', 'journal3/journal3')) {
+				throw new Exception($this->language->get('text_permission'));
+			}
+
+			$data = $this->input(self::POST, 'data');
+
+			$dashboard = [];
+
+			foreach ($data['stores'] ?? [] as $store) {
+				$dashboard['dashboard_user_' . $store['store_id']] = $store['dashboard']['dashboard_user'];
+				$dashboard['dashboard_key_' . $store['store_id']] = $store['dashboard']['dashboard_key'];
+			}
+
+			$this->model_journal3_setting->edit(0, array('dashboard' => $dashboard));
+
+			$this->journal3->cache->delete();
+
+			$this->renderJson('success');
+		} catch (Exception $e) {
+			$this->renderJson('error', $e->getMessage());
 		}
 	}
 

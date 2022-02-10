@@ -8,6 +8,7 @@ class ControllerJournal3Search extends Controller {
 	public function index() {
 		$search = Arr::get($this->request->get, 'search');
 		$category_id = Arr::get($this->request->get, 'category_id');
+		$sub_category = Arr::get($this->request->get, 'sub_category');
 
 		$url = '';
 
@@ -30,6 +31,10 @@ class ControllerJournal3Search extends Controller {
 
 		if ($category_id) {
 			$filter_data['filter_category_id'] = $category_id;
+		}
+
+		if ($sub_category && $this->journal3->settings->get('searchStyleSearchAutoSuggestSubCategories')) {
+			$filter_data['filter_sub_category'] = true;
 		}
 
 		$this->load->model('journal3/filter');

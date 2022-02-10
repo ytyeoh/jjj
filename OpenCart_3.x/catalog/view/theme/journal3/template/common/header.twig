@@ -16,6 +16,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <title>{{ title }}</title>
 <base href="{{ base }}" />
+<link rel="preload" href="{{ j3.settings.get('icons_preload_url') }}" as="font" crossorigin>
 {% if j3.document.hasFonts() %}
 <link rel="preconnect" href="https://fonts.googleapis.com/" crossorigin>
 <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
@@ -41,6 +42,7 @@
 {% if j3.document.hasFonts() %}
 {% if j3.settings.get('performanceAsyncFontsStatus') %}
 <script>WebFontConfig = { google: { families: {{ j3.document.getFonts(true) }} } };</script>
+<script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js" async></script>
 {% else %}
 <link href="https://fonts.googleapis.com/css?family={{ j3.document.getFonts(false) }}" type="text/css" rel="stylesheet"/>
 {% endif %}
@@ -72,6 +74,10 @@
 {% endif %}
 </head>
 <body class="{{ class }}">
+
+{% if j3.settings.get('journal3_home_h1') %}
+  <h1 class="sr-only" style="position: absolute; height: 1px; width: 1px; clip: rect(0,0,0,0);">{{ j3.settings.get('journal3_home_h1') }}</h1>
+{% endif %}
 
 {% if j3.settings.get('oldBrowserStatus') %}
 <div class="old-browser">

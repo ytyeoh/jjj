@@ -281,7 +281,7 @@ class Document {
 	public function getStyles($styles = array()) {
 		$minify = Journal3::getInstance()->settings->get('performanceCSSMinify');
 
-		$this->addStyle('catalog/view/theme/journal3/stylesheet/style.css');
+		$this->addStyle('catalog/view/theme/journal3/stylesheet/style.min.css');
 
 		if (is_file(DIR_TEMPLATE . 'journal3/stylesheet/custom.css')) {
 			$this->addStyle('catalog/view/theme/journal3/stylesheet/custom.css');

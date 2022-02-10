@@ -19,11 +19,15 @@ class Profiler {
 	}
 
 	public static function getStats() {
-		return static::$keys;
+		return array_filter(static::$keys, array(__CLASS__, 'filterStats'));
 	}
 
 	private static function isJournalKey($key) {
 		return strpos($key, 'journal3') !== false;
+	}
+
+	private static function filterStats($value) {
+		return $value >= 0;
 	}
 
 }

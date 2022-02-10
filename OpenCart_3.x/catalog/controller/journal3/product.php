@@ -3,6 +3,7 @@
 use Journal3\Opencart\Controller;
 use Journal3\Options\Parser;
 use Journal3\Utils\Arr;
+use Journal3\Utils\Profiler;
 
 class ControllerJournal3Product extends Controller {
 
@@ -37,6 +38,8 @@ class ControllerJournal3Product extends Controller {
 			$modules = $this->model_journal3_module->getByType($args['module_type']);
 
 			foreach ($modules as $module_id => $module_data) {
+				Profiler::start('journal3/product/extras/' . $args['module_type'] . '/' . $module_id);
+
 				$parser = new Parser('module/' . $args['module_type'] . '/' . $args['module_type'], Arr::get($module_data, 'general'), null, array($module_id));
 
 				if ($parser->getSetting('status') === false) {
@@ -88,6 +91,8 @@ class ControllerJournal3Product extends Controller {
 
 						break;
 				}
+
+				Profiler::end('journal3/product/extras/' . $args['module_type'] . '/' . $module_id);
 			}
 
 			$this->journal3->cache->set($cache_key, $cache);

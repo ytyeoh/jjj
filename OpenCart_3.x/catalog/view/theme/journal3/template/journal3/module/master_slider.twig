@@ -53,7 +53,7 @@
           {% elseif subitem.type == 'video' %}
             <div class="{{ j3.classes(subitem.classes) }}" {{ subitem.data|join(' ') }}>
               {% if subitem.videoType == 'html5' %}
-                <video autoplay playsinline muted controls data-src="{{ subitem.videoSrc }}"></video>
+                <video {% if subitem.layerAutoplay%}autoplay playsinline muted controls{% endif%} data-src="{{ subitem.videoSrc }}" class="lazyload"></video>
               {% elseif subitem.videoType == 'youtube' %}
                 <iframe src="https://www.youtube.com/embed/{{ subitem.videoSrc }}?hd=1&wmode=opaque&controls=1&showinfo=0"></iframe>
               {% elseif subitem.videoType == 'vimeo' %}
